@@ -12,7 +12,7 @@ Introduction:
 			7.) LISP / OpenMusic and PWGL ;or the failures of music xml
 			8.) Lilypond
 			9.) Python / Abjad
-		B: Reasons/Uses for computer music (for the composer, not necessarily society)
+		B: Reasons/Uses for computer music (keep topic about the composer, not necessarily society)
 		C: Open source ideology of abjad
 			1.) GitHub repositories
 			2.) Do everything in python (else use a stylesheet) never tamper with results. There is always an abjad way.
