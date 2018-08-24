@@ -1,0 +1,85 @@
+Thesis outline:
+
+Introduction:
+	My connection to the topic
+		A: My personal history toward abjad/computer music
+			1.) Instrumentalist then composer
+			2.) Began playing new music
+			3.) Began dabbling in systems (composing directly into notation software as well as electroacoustic music stemming from production background)
+			4.) Double major in college (injured hands by handwriting to avoid traditional uses of meter)
+			5.) Further interest in systems (hand-written algorithms [L-systems])
+			6.) Greater use of computer generated audio (max/msp, etc.)
+			7.) LISP / OpenMusic and PWGL ;or the failures of music xml
+			8.) Lilypond
+			9.) Python / Abjad
+		B: Reasons/Uses for computer music (for the composer, not necessarily society)
+		C: Open source ideology of abjad
+			1.) GitHub repositories
+			2.) Do everything in python (else use a stylesheet) never tamper with results. There is always an abjad way.
+
+Chapter I:
+	Some prerequisite knowledge
+		A: Music Notation
+			1.) brief history of western notation
+			2.) common practice notation
+				a.) pitch systems from no accidental to accidentals
+				b.) rhythmic systems (written versus prorated durations)
+		B: Lilypond’s model of music Notation
+			1.) compare notational model with other models of music notation.
+			2.) compare user interface with other notation software.
+			3.) compare lilypond syntax with LaTeX
+		C: Python
+			1.) types of programming languages (Procedural, Functional, Object-oriented)
+			2.) programming fundamentals
+			3.) python fundamentals
+				x.) concatenate, append, extend
+		D: Abjad
+			1.) brief history of abjad
+			2.) abjad fundamentals (isn’t this basically covered in chapter 2? how should this be balanced?)
+
+Chapter II:
+	My compositional practice with the ecosystem of python<->abjad->lilypond->interpreters(performers AND audience)
+		A: My methodology
+			1.) how is this useful to me as a composer?
+			2.) automating the boring stuff
+			3.) composing in an iterable fashion
+			4.) composing with algorithms and models
+			5.) a comfortable formalism in score control is not necessarily algorithmic utopia
+		B: The need to build more tools to simplify tasks
+			1.) integers, lists, strings (and to a lesser extent, dictionaries)
+			2.) list comprehensions and loops
+			3.) container, spanner, leaf(and logical ties), indicator
+			4.) abjad.Score, abjad.StaffGroup, abjad.Staff, abjad.Voice
+			5.) abjad.Note, abjad.Rest, abjad.MultimeasureRest
+			6.) abjad.Select, abjad.Iterate
+			7.) stylesheets
+			8.) context concatenation
+		C: The need to build tools for a more personalized approach to music-making
+			1.) why should i build my own tools?
+			2.) abjad-ext
+				a.) why does abjad-ext exist?
+				b.) rmakers
+				c.) other packages
+			3.) timespans (brief)
+			4.) micotonal expansion in abjad 2.21
+				a.) file systems and alterations
+				b.) microtonal.ily
+				c.) editing the font
+				d.) ekmel.ily
+				e.) abjad 3.0 system change
+				f.) removal of float paradigm
+				g.) in progress
+			4.) musicmakers (python package?)
+				a.) TaleaMusicMaker
+				b.) TupletMusicMaker
+				c.) EvenDivisionMusicMaker
+				d.) NoteMusicMaker
+
+Chapter III:
+	Compositions
+		A: Adumbration (string trio no.2)
+		B: Guerrero (for 12 saxophones)
+		C: ‘Short Orchestra Piece'
+
+Conclusion
+	In these three pieces I have synthesized my knowledge of music notation and programming to create music that is congruous with my artistic desires.
