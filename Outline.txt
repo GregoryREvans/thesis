@@ -23,7 +23,7 @@ Chapter I:
 			1.) brief history of western notation
 			2.) common practice notation
 				a.) pitch systems from no accidental to accidentals
-				b.) rhythmic systems (written versus prorated durations)
+				b.) rhythmic systems (written versus prolated durations)
 		B: Lilypond’s model of music Notation
 			1.) compare notational model with other models of music notation.
 			2.) compare user interface with other notation software.
