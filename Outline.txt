@@ -24,7 +24,7 @@ Chapter I:
 			2.) programming fundamentals
 			3.) python fundamentals
 				a.) integers, lists, strings (and to a lesser extent, dictionaries)
-				b.) slicing
+				b.) slicing (as told by trevor in the email list)
 				c.) list comprehensions and loops
 				d.) concatenate, append, extend
 				e.) functions
