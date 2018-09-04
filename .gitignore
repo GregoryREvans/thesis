@@ -12,5 +12,6 @@
 *.toc
 *.cls
 *.def
+*.pages
 __images__
 __pycache__
