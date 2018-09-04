@@ -5,6 +5,5 @@
 *.log
 *.gz
 *.png
-adumbration_outline.txt
 __images__
 __pycache__

@@ -3,16 +3,17 @@ Chapter II:
 		A: My methodology
 
         In the preceding chapter we have seen some of the strengths and potential weaknesses of abjad and lilypond when compared with similar software, as well as some potential logical pitfalls when working with these programs.
-        In my recent compositional work, I have begun to amalgamate a workflow out of the ecosystem of python, abjad, and lilypond, by learning from and embracing the idiosyncrasies of the software.
+        In my recent compositional work, I have begun to amalgamate a workflow out of the ecosystem of python, abjad, and lilypond, by learning from and embracing the idiosyncrasies of the software.(will I actually address all that this implies? Maybe simplify?)
         Occaisonaly I have found the need to tweak abjad's source code in order for it to perform functions that I desire, but more often than this, the composer will find the need to build tools to simplify the process of engraving.
-        The use of these tools in tandem is advantageous for my work due to the beautiful flexibility of lilypond's notational algorithm and abjad's [(simplification of formal structures in music engraving) or (clear model of music notation)].
+        The use of these tools in tandem is advantageous for my work due to the beautiful flexibility of lilypond's notational algorithm(what does this mean though? Spacing…font? Be clear…) and abjad's [(simplification of formal structures in music engraving) or (clear model of music notation)].
         In the end, the greatest strength of this ecosystem is its flexibility.
-        Not only are abjad and lilypond both immensly rich in their features, but, due to their open source nature, their source code is accessible to the user for further modification.
+        Not only are abjad and lilypond both immensely rich in their features, but, due to their open source nature, their source code is accessible to the user for further modification.
         In my work, I often desire a structural rigor, where rhythms, pitches, performance techniques, and instrumentation (among an infinite number of other parameters), are balanced together by a plan or logic that gives meaning (rightness or wrongness) to potential musical realities (for a given piece...I'm not setting rules for the universe, just my isolated universe where I am god).
         Very often, a rigorous structure falls apart when constructed by hand (humans are prone to err, while computers don't make mistakes unless you tell them to), thus working with the python programming language allows for a consistency in formal rigor that might be otherwise unattainable (it also allows for the potential modeling of complex systems or algorithmic music).
         (Since lilypond draws and has a looser{?} model of notation than other software, it allows the composer to have greater graphic freedom, but since it has no GUI it can spend more memory power when calculating collisions. Also since it allows you to include scheme functions, you are able to affect other features like proportional spacing across an entire score instead of manually dragging note heads like in finale or sibelius.)
-        (Abjad seems tailor made for polyphony (unlike OM or PWGL which seem to be hell-bent on single-voice-abstraction). It has no restrictions in this regard...and since you have direct access to the python code {unlike in OM or PWGL} you can VERY EASILY use THE SAME MATERIAL across multiple instruments at different points in time.)
+        (Abjad seems tailor-made for polyphony (unlike OM or PWGL which seem to be hell-bent on single-voice-abstraction). It has no restrictions in this regard...and since you have direct access to the python code {unlike in OM or PWGL} you can VERY EASILY use THE SAME MATERIAL across multiple instruments at different points in time.)
         (Python's object-oriented potential models musical thought more clearly than LISP)
+		In this chapter we will take a look at the compositional advantages of working with these programs such as how to formalize(automate?) potentially tedious tasks, the benefits of an iterative compositional workflow, possibilities for composing with algorithms or models.
 
 			1.) how is this useful to me as a composer?
 
@@ -31,3 +32,6 @@ Chapter II:
 
 
 			5.) a comfortable formalism in score control is not necessarily algorithmic utopia
+
+			This process should not be misperceived as a purely algorithmic system for music composition.
+			Certainly, formalizing elements in a score
