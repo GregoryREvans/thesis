@@ -5,5 +5,12 @@
 *.log
 *.gz
 *.png
+*.idx
+*.lof
+*.lot
+*.out
+*.toc
+*.cls
+*.def
 __images__
 __pycache__
