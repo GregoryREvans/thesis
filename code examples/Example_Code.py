@@ -1,22 +1,28 @@
 import abjad
 
-###NOTE CREATION###
-#Slow Note Creation
-note_1 = abjad.Note(0, abjad.Duration(1, 4))
-note_2 = abjad.Note(1, abjad.Duration(1, 4))
-note_3 = abjad.Note(2, abjad.Duration(1, 2))
-notes = [note_1, note_2, note_3]
-staff = abjad.Staff(notes)
-abjad.show(staff)
-
-#Faster Note Creation
-numerators = [1, 1, 1, ]
-denominators = [4, 4, 2, ]
-durations = [abjad.Duration(y, z) for y, z in zip(numerators, denominators)]
-pitches = [0, 1, 2, ]
-notes = [abjad.Note(x, y) for x, y in zip(pitches, durations)]
-note_staff = abjad.Staff(notes)
-abjad.show(note_staff)
+# ###NOTE CREATION###
+# note = abjad.Note()
+# abjad.show(note)
+#
+# note = abjad.Note(11, abjad.Duration(1, 8))
+# abjad.show(note)
+#
+# #Slow Note Creation
+# note_1 = abjad.Note(0, abjad.Duration(1, 4))
+# note_2 = abjad.Note(1, abjad.Duration(1, 4))
+# note_3 = abjad.Note(2, abjad.Duration(1, 2))
+# notes = [note_1, note_2, note_3]
+# staff = abjad.Staff(notes)
+# abjad.show(staff)
+#
+# #Faster Note Creation
+# numerators = [1, 1, 1, ]
+# denominators = [4, 4, 2, ]
+# durations = [abjad.Duration(y, z) for y, z in zip(numerators, denominators)]
+# pitches = [0, 1, 2, ]
+# notes = [abjad.Note(x, y) for x, y in zip(pitches, durations)]
+# note_staff = abjad.Staff(notes)
+# abjad.show(note_staff)
 
 ###BOW STAFF OPTIONS###
 #Slow bow_staff
