@@ -1,12 +1,12 @@
 Thesis outline:
-
+			Title the paper very clearly
 Abstract:
 	abstract here
 
 Introduction:
 	WRITE THIS AFTER THE OTHER CHAPTERS
 	I NEED TO KNOW WHAT I'VE SAID BEFORE I INTRODUCE THEM
-	(in this dissertation i will be discussing these three things in my composition. I've come here by my feeling that there are things missing in the typical commercial softwares)
+	(in this dissertation i will be discussing these three things in my composition. I've come here by my feeling that there are things missing in the typical commercial software)
 	Not a method or ideology, but a system
 
 Chapter I:
@@ -36,13 +36,12 @@ Chapter I:
 			3.) some coding "best practices" with abjad (imports and 'abjad.')
 
 Chapter II:
-	My compositional practice with the ecosystem of python<->abjad->lilypond->interpreters(performers AND audience)
+	My compositional practice with python, abjad, lilypond
 		A: My methodology
-			1.) how is this useful to me as a composer?
-			2.) automating the boring stuff
-			3.) composing in an iterable fashion
-			4.) composing with algorithms and models
-			5.) a comfortable formalism in score control is not necessarily algorithmic utopia
+			1.) automating the boring stuff
+			2.) composing in an iterable fashion
+			3.) composing with algorithms and models
+			4.) a comfortable formalism in score control is not necessarily algorithmic utopia
 		B: The need to build more tools to simplify tasks
 			1.) container, spanner, leaf(and logical ties), indicator
 			2.) abjad.Score, abjad.StaffGroup, abjad.Staff, abjad.Voice
@@ -65,11 +64,7 @@ Chapter II:
 				e.) abjad 3.0 system change
 				f.) removal of float paradigm
 				g.) in progress
-			5.) musicmakers (python package?)
-				a.) TaleaMusicMaker
-				b.) TupletMusicMaker
-				c.) EvenDivisionMusicMaker
-				d.) NoteMusicMaker
+			5.) MusicMaker & AttachmentHandler & StringContactSpanner
 
 Chapter III:
 	Compositions
