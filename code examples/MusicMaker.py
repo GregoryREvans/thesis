@@ -28,6 +28,17 @@ class MusicMaker:
 
     def _make_music(self, durations):
         selections = self._make_basic_rhythm(durations)
+        if self.pitches == None:
+            start_command = abjad.LilyPondLiteral(
+                r'\stopStaff \once \override Staff.StaffSymbol.line-count = #0 \startStaff',
+                format_slot='before',
+                )
+            stop_command = abjad.LilyPondLiteral(
+                r'\stopStaff \startStaff',
+                format_slot='after',
+                )
+            abjad.attach(start_command, selections[0][0])
+            abjad.attach(stop_command, selections[0][-1])
         if self.pitches != None:
             selections = self._apply_pitches(selections, self.pitches)
         if self.attachment_handler != None:
