@@ -97,7 +97,7 @@ abjad.show(new_staff)
 
 #Behavioral Dynamics
 music_staff = abjad.Staff()
-music_staff.extend(r"c'4 cs'4 d'2 r4 ds'2 e'8 f'8 fs'8 g'8 gs''8 r4 a''2.")
+music_staff.extend(r"c'4 cs'4 d'2 r4 ds'2. e'8 f'8 fs'8 g'8 gs'8 r4. a'1")
 for run in abjad.select(music_staff).runs():
     if len(run) > 3:
         leaves = abjad.select(run).leaves()
