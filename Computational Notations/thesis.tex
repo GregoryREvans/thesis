@@ -1,0 +1,47 @@
+%!TEX TS-program = xelatex
+%!TEX encoding = UTF-8 Unicode
+
+\documentclass{harvard-thesis}
+
+\begin{document}
+
+% the front matter
+\input{frontmatter/coverpage}
+\maketitle
+\copyrightpage
+\abstractpage
+\dedicationpage
+\acknowledgments
+\pagenumbering{roman}
+\setcounter{page}{5}
+\tableofcontents
+\pagenumbering{roman}
+%\authorlist
+\setcounter{page}{7}
+\listoffigures
+\pagenumbering{roman}
+\setcounter{page}{8}
+\lstlistoflistings
+\include{chapters/front_cover_image}
+\include{chapters/back_cover_image}
+
+
+\onehalfspacing
+
+% include each chapter...
+\pagenumbering{arabic}
+\include{chapters/chapter1}
+\include{chapters/chapter2}
+\include{chapters/chapter3}
+\include{chapters/scores}
+
+\singlespacing
+
+% the back matter
+\clearpage
+\bibliography{references}
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{plainnat}
+\include{endmatter/colophon}
+
+\end{document}

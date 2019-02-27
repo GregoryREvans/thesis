@@ -1,0 +1,336 @@
+\singlespace
+\begin{savequote}[75mm] %was 85
+The artist-conceptor will have to be knowledgeable and inventive in such varied domains as mathematics, logic, physics, chemistry, biology, genetics, paleontology (for the evolution of forms), the human sciences and history; in short, a sort of universality, but one based upon, guided by and oriented toward forms and architectures. \\
+\citeyearpar[Arts/Sciences: Alloys p.3]{Xenakis}
+\qauthor{Iannis Xenakis} 
+\end{savequote}
+
+\chapter{Some Prerequisite Knowledge of Lilypond and Python}
+\doublespace
+\newthought{In my experience} composing scores with the help of computational systems, I have found that the Abjad Application Programming Interface\footnote{http://abjad.mbrsi.org/} for formalized score control provides the greatest power and flexibility. Abjad is significant because of the freedom with which it provides composers with the ability to manipulate their musical material and the ability to control not only the musical elements of a score, but also other graphic features as well. Every score that is created with Abjad is engraved by the Lilypond music notation engine.\footnote{http://lilypond.org/} Because of this interdependence, the composer should become familiar with Lilypond’s model of music notation as well as elements of Lilypond's syntax. Since Abjad is an API in the Python programming language,\footnote{https://www.python.org/} it is essential that the composer be familiar with writing Python code. In this chapter, some basic concerns about Lilypond and Python will be discussed, while information directly related to the Abjad API follows in chapter two.
+
+	\section{Lilypond}
+
+\pagestyle{fancy}
+\renewcommand\headrulewidth{0pt}
+\lhead{}\chead{}\rhead{\thepage}
+\cfoot{}
+    \subsection{Comparision with Other Software}
+\newthought{Most modern composers} will be familiar with the plethora of options available for digital music engraving. The purpose of this paper is not to delve into the history of modern engraving practices, but it is important to note that, by far, the most popular engraving software available for the consumer market today are Finale\footnote{https://www.finalemusic.com/} and Sibelius,\footnote{https://www.avid.com/sibelius} with a few new robust programs like Dorico\footnote{https://www.dorico.com/} beginning to appear. These systems, packed with many features, are suitable for the majority of composers’ needs. They allow composers to be able to engrave pitches and rhythms in traditional Western notation and provide a number of formatting options that expand upon these traditions, allowing the user to create professional-quality documents, but it is not insignificant to note that many composers find the musical model of these programs to be overly restrictive upon musical creativity. As an example, with most of the common engraving software, users often must click through several menus to engrave a tuplet other than a triplet, especially if that tuplet does not contain successive rhythms of the same duration. Programs such as Dorico and the most recent versions of Finale have supplemented some of these issues through keyboard shortcuts\footnote{Most notation software also allows the user to define their own keyboard shortcuts.} and opened a clearer accessibility to the engraving of insected tuplets, but otherwise it is clear: these programs are tailored to a specific set of engraving requirements. This software is made for people engraving fairly traditional music like transcriptions, orchestrations, film scores, and so on, which do not typically make extensive use of this kind of notation.
+
+
+While the programs are flexible and can be used for other means, I decided that what I require from a musical score is significantly restricted by the software. It becomes tedious to write music with many tuplets or other graphical oddities. While some composers have written their own engraving programs, like NoteAbility Pro,\footnote{http://debussy.music.ubc.ca/NoteAbility/} which can handle a number of contemporary techniques with ease, other composers have resorted to simply composing in graphic editors and drawing-oriented software, which brings the act of engraving much closer to the act of handwriting a piece; but even with these paradigm shifts, few notation engines show any friendliness to structural formalization. Finale and Sibelius have features that allow the user to program certain procedures,\footnote{I have mostly seen plugins related to layout spacing and harmonic analysis, but it is my understanding the there are more capabilities available.} but these are limited. Programs like Patch Work (and its kin Patch Work Graphic Language\footnote{http://www2.siba.fi/PWGL/}) and OpenMusic\footnote{http://repmus.ircam.fr/openmusic/home} were created in order to supplement this limitation. These programs allow the composer to manipulate data to represent musical elements which are then engraved within the program in the case of PWGL. In the case of OpenMusic, the elements are exported as MusicXML,\footnote{https://www.musicxml.com/} to be engraved by another software; but the complex MusicXML files produced by these programs are not always stable and often produce fallacious results or completely fail to convert.\footnote{Incidentally, my first serious attempt to learn Abjad stems exactly from the fact that neither Finale 2012 nor Dorico 1 could convert MusicXML files I had created in OpenMusic 6.12. OMLily was the salvation of this music, but engraving features of the score other than pitch and rhythm proved tedious.} The combination of Abjad and Lilypond surmounts many of these concerns. Abjad simply writes text files of Lilypond code, which removes the concern of file transfer errors, and Lilypond represents each element of a score, music, text, or graphic, in a syntax that is simple and consistent across a number of engraving complexities allowing the composer to engrave almost anything as part of the score.\footnote{This is possible because Lilypond inherently has no GUI and writing text files is the intended user interaction with the program. It is also possible because Lilypond is open source. Abjad could potentially be reworked to engrave music with a different engine, but Lilypond was and still is the most feasible option.} 
+
+\subsection{Lilypond's Model of Musical Rhythm}
+
+Another important aspect of Lilypond is its modelling of rhythmic content. Lilypond makes a distinction, unlike other notation engines, between written and prolated durations. In programs like OpenMusic, a set of triplet eighth notes would be written as durations of \( \frac{1}{3} \), \( \frac{1}{3} \), \( \frac{1}{3} \),\footnote{Often, composers use OpenMusic's RTM syntax which is comprised of LISP-like nested lists like the following, which does not model rhythm in the way described in this paragraph: (1 (3 (2 (1 2 -1 1)) 3))} but in Lilypond they would be written as \( \frac{1}{8} \), \( \frac{1}{8} \), \( \frac{1}{8} \) prolated by a duration of \( \frac{3}{2} \). This means that traditional rhythmic notation like whole notes through sixty-fourth notes and beyond are written as usual, but are prolated by a surrounding tuplet bracket with a given duration. Abjad follows, as much as possible, the same conventions as Lilypond’s notational model.
+
+\subsection{Context Concatenation}
+
+Lilypond also has a feature referred to as ``Context Concatenation.'' A context in Lilypond can be thought of as a staff with various features and formats associated with it. When given a name, a context is able to be appended to another context with the same name, as long as the files share the same score structure.\footnote{i.e. instrumentation as well as other invisible contexts} This allows the composer to write various sections of a piece in isolation and to stitch them together into a final document as a secondary process. Users should note a similarity between Lilypond syntax and \LaTeX \:\footnote{https://www.latex-project.org/} syntax, both of which share conceptual similarities with HTML\footnote{https://www.w3.org/html/} code. The following is a simple example of Lilypond syntax containing an unusual tuplet:\footnote{Note that it should be clear from this example that it is no more difficult to engrave this unusual tuplet than a regular triplet of straight eighth notes.}
+
+\singlespace
+\begin{lstlisting}[language=, caption=Lilypond syntax]
+\version "2.19.82"
+\language "english"
+\score {
+    \new Staff
+    {   \times 2/9{
+            c'8
+            cs'8
+            d'4.
+            ef'8
+            \times 3/2 {
+                e'8
+                f'8    }
+              }
+        fs'8
+        g'8
+        af'4
+        a'4  }
+}
+\end{lstlisting}
+\doublespace
+
+		\section{Python}
+
+\newthought{In Python}, there are a number of data types. Some of the important data types to address when discussing Abjad are integers, floating-point decimals, booleans, variables, strings, lists, tuples, and dictionaries. Each of these data types have specific features and behave in characteristic ways. Both integers and floating-point decimals, often called floats, are numbers. Integers can be used to signify numeric value in whole numbers while floats offer a more refined gradation of values. Variables are names that are assigned to other values or processes. With variables, users are able to refer to elements throughout a file without rewriting the information many times by hand.
+    \subsection{Lists}
+        \subsubsection{Slicing}
+An important process to comprehend when composing with Abjad is that of list manipulation.\footnote{In fact, most of the work composers do when using Abjad involves storing and manipulating data in lists and dictionaries. Most elements of the score end up in a list at some point.} There are many processes that can be performed on and with lists. The concept of slicing will be discussed first. Readers vaguely familiar with Python may recognize the format $[x:y]$ when referring to slicing a list. In Python, the programmer can refer to items within a list via their indices. The index is the location within a list where an item exists. These indices begin at zero. An example set of indices is $[0, 1, 2, 3, 4, 5 …]$,\footnote{It is also possible to use a negative index. The first element of a list is still index 0, but the final element of the list is -1.} but the Python slices $[x:y]$ do not refer to items, even though indices do refer to items. The indicators within a slice actually refer to the spaces between items. It is possible to test this principle as follows:\footnote{This explanation comes from an email sent by Trevor Ba\v{c}a to the Abjad mailing list.}
+\singlespace
+\begin{lstlisting}[language=Python, caption=Printing an item of a list through indexing]
+>>> letters = ['a', 'b', 'c', 'd', 'e', 'f']
+>>> print(letters[2])
+\end{lstlisting}
+\doublespace
+Which results in:
+\singlespace
+\begin{lstlisting}[language=, caption=Printing an item of a list through indexing: RESULT]
+c
+\end{lstlisting}
+\doublespace
+but:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Printing items of a list through slicing]
+>>> letters = ['a', 'b', 'c', 'd', 'e', 'f']
+>>> print(letters[0:2])
+\end{lstlisting}
+\doublespace
+results in:
+\singlespace
+\begin{lstlisting}[language=, caption=Printing items of a list through slicing: RESULT]
+a
+b
+\end{lstlisting}
+\doublespace
+The following example presents a logical pitfall:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Inserting elements into a list through slicing]
+>>> letters = ['a', 'b', 'c', 'd', 'e', 'f']
+>>> letters[-1:1] = 'xyz'
+>>> print(letters)
+\end{lstlisting}
+\doublespace
+Which will result in:
+\singlespace
+\begin{lstlisting}[language=, caption=Inserting elements into a list through slicing: RESULT]
+['a', 'b', 'c', 'd', 'e', 'x', 'y', 'z', 'f']
+\end{lstlisting}
+\doublespace
+It is demonstrated here that, in fact, this slicing refers to the continuous space between -1 and 1. The direction proceeds from right to left because the slice was begun with a negative number.
+
+\subsubsection{List Comprehensions}
+
+Another of the many actions that are able to be performed on lists is that of list comprehension. List comprehensions allow the programmer to quickly create lists whose contents follow simple parameters. Consider the built-in Python function $range()$, which allows the user to increment integers up until the user-input point. If Python were asked to print each item within $range(5)$, then $0, 1, 2, 3,$ and $4$ would be written to the terminal. A list comprehension could be written as follows:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Creating a list with a list comprehension]
+>>> foo = [x for x in range(5)]
+>>> print(foo)
+\end{lstlisting}
+\doublespace
+Which will result in:
+\singlespace
+\begin{lstlisting}[language=, caption=Creating a list with a list comprehension: RESULT]
+[0, 1, 2, 3, 4]
+\end{lstlisting}
+\doublespace
+It is also possible to act upon the elements within this list:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Acting upon elements in a list comprehension]
+>>> bar = [x*3 for x in range(5)]
+>>> print(bar)
+\end{lstlisting}
+\doublespace
+Which will result in:
+\singlespace
+\begin{lstlisting}[language=, caption=Acting upon elements in a list comprehension: RESULT]
+[0, 3, 6, 9, 12]
+\end{lstlisting}
+\doublespace
+This process can be substituted by a ``for loop,'' which is useful for more complicated functions, but can be overly verbose for processes better handled by list comprehensions:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Rewriting a list comprehension as a ``for loop'']
+>>> increments = range(5)
+>>> spam = []
+>>> for x in increments:
+...	    spam.append(x*3)
+>>> print(spam)
+\end{lstlisting}
+\doublespace
+In this example, the built-in function $append()$ is used. It is important to make a distinction between append() and extend(). This can be illustrated as follows:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Appending elements to a list]
+>>> list_1 = [0, 1, 2, 3]
+>>> list_2 = [4, 5, 6, 7]
+>>> list_1.append(list_2)
+>>> print(list_1)
+\end{lstlisting}
+\doublespace
+Which results in:
+\singlespace
+\begin{lstlisting}[language=, caption=Appending elements to a list: RESULT]
+[0, 1, 2, 3, [4, 5, 6, 7]]
+\end{lstlisting}
+\doublespace
+but:
+\singlespace
+\begin{lstlisting}[language=Python, caption=Extending a list with elements]
+>>> list_1 = [0, 1, 2, 3]
+>>> list_2 = [4, 5, 6, 7]
+>>> list_1.extend(list_2)
+>>> print(list_1)
+\end{lstlisting}
+\doublespace
+results in:
+\singlespace
+\begin{lstlisting}[language=, caption=Extending a list with elements: RESULT]
+[0, 1, 2, 3, 4, 5, 6, 7]
+\end{lstlisting}
+\doublespace
+
+    \subsection{Dictionaries}
+
+A dictionary is much like a list, but in the case of a dictionary, elements of the list are referred to by keys:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Printing elements from a dictionary]
+musician = {'name':'Greg', 'instrument':'cello', 'age':24}
+print(musician['instrument'])
+\end{lstlisting}
+\doublespace
+
+resulting in:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Printing elements from a dictionary: RESULT]
+cello
+\end{lstlisting}
+\doublespace
+
+Is is not possible to refer to elements in the dictionary from the right side of the key. The following example produces an error:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Printing elements from a dictionary: ERROR]
+musician = {'name':'Greg', 'instrument':'cello', 'age':24}
+print(musician['cello'])
+\end{lstlisting}
+\doublespace
+
+To make this kind of cross-definition work, the user must add the keys in reverse as follows:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Printing elements from a dictionary: CORRECTION]
+musician = {'name':'Greg', 'instrument':'cello', 'age':24, 'Greg':'name', 'cello':'instrument', 24:'age'}
+print(musician['cello'])
+\end{lstlisting}
+\doublespace
+
+\subsubsection{Dictionary Comprehensions}
+
+Dictionary comprehensions are also possible and follow the same structure as list comprehensions:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Making a dictionary comprehension]
+keys =['Name', 'Instrument', 'Age']
+definitions = ['Greg', 'Cello', 24]
+musician = {key:definition for key, definition in zip(keys, definitions)}
+print(musician)
+\end{lstlisting}
+\doublespace
+
+resulting in:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Making a dictionary comprehension: RESULT]
+{'Name': 'Greg', 'Instrument': 'Cello', 'Age': 24}
+\end{lstlisting}
+\doublespace
+
+\subsection{Modelling Objects}
+
+One of the most attractive features of Abjad is that the system allows for the formalization of structures to control the placement and distribution of dynamics, articulations, and in fact, every visual element of the score. This is because Abjad attempts to model music notation rather than musical phenomenology. It treats all elements in a musical score as an object. An object in programming has various attributes and potential modes of behavior. An example of object modelling can be seen in the creation of animals. A first step is to create a general template on which the animals are based.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Creating an empty class in python]
+>>> class Animal:
+... 	def __init__(self):
+\end{lstlisting}
+\doublespace
+
+Attributes can be added to the basic animal in the \_\_init\_\_ section.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Adding attributes to classes]
+>>> class Animal:
+... 	def __init__(self, name, color, pattern):
+\end{lstlisting}
+\doublespace
+
+In order to retrieve the information that is placed in these attributes, the user must add the following below the \_\_init\_\_ section:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Defining attributes in classes]
+>>> class Animal:
+... 	def __init__(self, name, color, pattern):
+...		self.name = name
+...		self.color = color
+...		self.pattern = pattern
+\end{lstlisting}
+\doublespace
+
+Now that an Animal object has been created, the programmer can begin to create individual animal types. One could create many animal objects to represent the menagerie, but a possible intermediate step would be to create a sub-class of the Animal. For instance, one could create a cat based on the general animal by doing the following:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Creating a subclass]
+>>> class Cat(Animal):
+\end{lstlisting}
+\doublespace
+
+This cat has all of the same attributes that the general animal has. It is also possible to write functions to be included only in a specific sub-class:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Adding methods to a subclass]
+>>> class Cat(Animal):
+...	def speak(self):
+...		print(“Purr…”)
+\end{lstlisting}
+\doublespace
+
+Likewise, other animals can be created in the same fashion:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Creating more subclasses]
+>>> class Dog(Animal):
+...	def speak(self):
+...		print(“Woof…”)
+>>> class Giraffe(Animal):
+...	def speak(self):
+...		print(“…giraffe sounds?”)
+\end{lstlisting}
+\doublespace
+
+Once the programmer has created objects to model different types of animals, specific animals with names, colors, and coat patterns can be defined by creating an instance of the animal objects.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Instantiating objects with attribute values]
+>>> huckle = Cat('huckle', 'orange', 'tabby')
+>>> ginger = Dog('ginger', 'tan', 'fluffy')
+>>> spooks = Cat('spooks', 'grey', 'tabby')
+>>> geoffrey = Giraffe('geoffrey', 'brown and yellow', 'spotted')
+\end{lstlisting}
+\doublespace
+
+These object instances can be queried for certain information:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Interacting with objects]
+>>> print("Huckle is " + huckle.color)
+>>> print("Spooks is a " + spooks.pattern)
+>>> print("The dog's name is " + ginger.name)
+>>> print("Geoffrey is " + geoffrey.color)
+>>> huckle.speak()
+>>> spooks.speak()
+>>> ginger.speak()
+>>> geoffrey.speak()
+\end{lstlisting}
+\doublespace
+
+Which results in the following output at the terminal:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Interacting with objects: RESULT]
+Huckle is orange
+Spooks is a tabby
+The dog's name is ginger
+Geoffrey is brown and yellow
+Purr...
+Purr...
+Woof!
+...giraffe sounds?
+\end{lstlisting}
+\doublespace
+
+Working with Python quickly becomes very complex, depending on the needs of the programmer, but much can be accomplished with an understanding of Python's data types, lists, dictionaries, and object modelling. In the following chapter, concepts in Lilypond and Python pertaining specifically to Abjad will be introduced in the context of my own use of the software for my compositional process.
+
+\singlespace
