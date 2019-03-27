@@ -1,0 +1,2965 @@
+\begin{savequote}[75mm] 
+One of the most significant areas of investigation in live instrumental music - that pertaining to the degree of approximation attained in any given realization of a particular type of musical text - offers itself most directly for transference into the computer studio, by reason of the obviously significant extent to which the concept of efficiency (in both human and computer terms) is (at least in real time) self-contradictory. \\
+\citeyearpar[Composer-Computer-Active Form par.3]{Ferneyhough}
+\qauthor{Brian Ferneyhough} 
+\end{savequote}
+
+\chapter{My Compositional Practice With Abjad, Lilypond, and Python}
+\doublespace
+	\section{Methodology}
+
+\pagestyle{fancy}
+\renewcommand\headrulewidth{0pt}
+\lhead{}\chead{}\rhead{}
+\cfoot{\vspace*{1.5\baselineskip}\thepage}
+
+\newthought{In the preceding chapter}, I presented some of the strengths and potential weaknesses of Abjad and Lilypond when compared with similar programming paradigms, as well as some potential logical pitfalls when working with these programs. In my recent compositional practice, I have begun to amalgamate a workflow out of the ecosystem of Python, Abjad, and Lilypond, by learning from and embracing the idiosyncrasies of each. The use of these tools in tandem is advantageous for my work due to the flexibility of Lilypond's notational algorithm and Abjad’s clarification of Lilypond’s model of music notation through Python’s object-oriented nature, as well as Python’s vast logical and mathematical abilities. Not only are Abjad and Lilypond both full of diverse features, but due to their open source nature, the source code for each is accessible to the user for further modification. Occasionally, I have found the need to tweak Abjad's source code in order for it to perform functions that I desire, but more often than this, the composer will find the need to build tools to simplify the process of engraving.
+
+In my work, I often desire a structural rigor, where rhythms, pitches, and orchestration, among other parameters are balanced together by a plan or logic that gives meaning to potential musical realities. A rigorous structure tends to fall apart when constructed by hand because humans are prone to err, while computers, conversely, do not make mistakes unless they are taught a false procedure. The computer does not have the ability to produce a logical fallacy unless the error is programmed into its underlying functionality. Because of this, working with the Python programming language allows for a consistency in formal rigor that might be otherwise unattainable by intuition or hand-written calculations and graphs. It also allows for the potential modeling of complex systems and algorithmic music, where human intuition is placed in a more subordinate role to formal design.
+
+\pagestyle{fancy}
+\renewcommand\headrulewidth{0pt}
+\lhead{}\chead{}\rhead{\thepage}
+\cfoot{}
+
+Lilypond’s ability to draw lines and shapes, and its less restrictive model of notation than other software, allow the composer to have greater graphic freedom than other notation software. Another notable feature of Lilypond is its lack of a GUI,\footnote{Graphic User Interface} allowing the program more memory power when calculating spacing to avoid collisions, which results in greater visual clarity upon the first engraving of a piece. Also, since it allows the user to include functions in the Scheme programming language,\footnote{https://www.scheme.com/} the user is able to affect other features like proportional spacing across an entire score instead of manually clicking and dragging note heads as one would do while using Finale or Sibelius. Lilypond has the ability to manage all visual aspects of a score and can also be used to export image files in the $pdf$ and $png$ formats, along with $midi$ files. Finally, a great feature of Lilypond is its context concatenation ability. As mentioned in the previous chapter, this allows multiple, separate Lilypond files to be combined with one another to stitch together separate segments of a full composition into one document.
+
+
+An advantage to the Abjad composition paradigm is its ability to manage polyphony. Other programming paradigms like PWGL or OM are a little more restrictive in this regard. Often, in PWGL and OM, using a procedure in one instrument as well as the next requires the user to instantiate a function multiple times and to alter the settings of the function in order for the music to seem continuous.\footnote{This issue would be solved with generators, but functions in OpenMusic don't naturally behave in this way. Admittedly, I do not know LISP very well and never wrote my own LISP functions in OM.} This duplication of processes that were carried out in other voices clutters up the workspace with redundant information. In Abjad, the two concepts of copying and continuing are very distinct,\footnote{This distinction, as mentioned earlier, comes from whether or not the programmer retrieves data from a generator or another reservoir.} allowing the composer to specifically use either technique as needed. Since Abjad is an API,\footnote{Application Programming Interface} in Python, it becomes very easy to cross-reference the same material-generating functions across different voices and at different points in time within the score. This comes from the fact that the music composed with Abjad is written as a text file, allowing composers to create and manipulate any object or function they choose; whereas programs like PWGL and OM are slightly restricted by their GUI. Though there are ways for composers to write their own functions in these programs, they are more difficult to manipulate and it is not entirely obvious to a beginner that it is even possible to do so. Because Abjad has no GUI, it inherently invites the composer to write the source code as part of the act of composition.
+
+
+Though one could theoretically compose an entire score and only compile the Python file once the score is finalized, Abjad allows for an iterative workflow of composing, compiling, critiquing, and correcting in a cycle that lasts until the composer is satisfied with the composition. The speed of modern computation as opposed to hand written calculation and engraving makes this workflow reasonable. 
+
+
+In Abjad, elements of a score are modeled as Python objects. Some objects, like a note or a rest for instance, have a duration attribute, but a note has an attribute that a rest does not: pitch. All elements of the score are objects with properties and attributes, therefore the entire score is manipulable via Abjad and, by extension, various formal means. This is a feature that is not present in OM and is difficult to achieve in PWGL, as OM does not display articulations or dynamics within the score viewing windows and PWGL’s interface is difficult to read.\footnote{Although many composers have had success with PWGL, its user interface has always seemed too cluttered to me and I have not explored it as thoroughly as I have OpenMusic.} This is, in part, because these programs have different foci and goals. OM is typically used like a calculator for composers to generate options for materials with which to compose and PWGL, while able to export data to other notation engines, is equipped with its own ENP,\footnote{Expressive Notation Package} with which music is rendered. Both OM and PWGL are based on CLOS,\footnote{Common LISP Object System} but I believe that the legibility of Python scripts as well as the large number of Python programmers makes it a much better candidate for the user-end of the system allowing for easy transference of knowledge from one user to another. The objects of notational elements are capable of being manipulated, therefore they can be created, connected, and appended to one another throughout the composition process to create a score through composer-written procedures and functions as well as through built-in tools. In the end, the greatest strength of this ecosystem is its flexibility.
+
+In this chapter, I will discuss the compositional advantages of working with these programs such as how to automate potentially tedious tasks, the benefits of an iterative compositional workflow, and the possibilities for composing with algorithms or models. I will also explain some of my own solutions to composing with Abjad, like my $MusicMaker$ and $AttachmentHandlers$ classes as well as times when I have edited the Abjad source code.
+
+\subsection{The Usefulness of Abjad for me as a Composer}
+
+In my recent music, it is typical for me to focus significantly on formal uniformity and continuous, alternating procedures. These procedures might be in relation to the rhythmic, harmonic, textural, or dynamic material. I have also become very interested in a pseudo-tablature style of notation that features these iterative, procedural factors. It became apparent to me that I could leverage the programming concepts of loops and functions to write music very quickly. With this methodology I have written various programs that organize and produce musical material based on my predetermined structures, allowing me to compose material and generate the product of these procedures quickly. In the course of working in this manner, I have begun to appreciate the necessity of externalizing various tools in order to clean up my composition files. These tools, as well as my general compositional templates, could also easily be used by other composers, but they are tailored explicitly to my own compositional needs. Not only do my tools written in Python help me stay consistent with my formal designs, they also allow me to compose music that is specifically organized to my own tendencies and logic, rather than copying another composer’s tools and workflow. Although I have benefited greatly from the programs I have written, they are a work in progress and may not necessarily have universal functionality.\footnote{All code examples in this paper are written in Python 3, Abjad 3.1, and Lilypond 2.19.82.}
+
+\subsection{Automating Potentially Tedious Tasks}
+
+\subsubsection{Creating Notes}
+
+There are two options for creating and viewing notes with Abjad. One could open up the terminal, or command line, and activate a Python session in order to write the code or alternatively, it is possible to write code in a text file saved with the $.py$ suffix and call Python to compile it once the file is completed. The former method is better for quick testing of loops and materials, while the second method is much more sustainable for the process of composing a score, because it allows the programmer to save progress as well as multiple versions of the code along the way. Regardless of which method is chosen, the code is written in the same way. The first step is always to import the Abjad API into the python session or file so that all of Abjad’s tools and properties are available. There are several ways of doing this, but the key to clarity is to be consistent. Throughout this chapter I will use this format:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Import statement format]
+>>> import abjad
+\end{lstlisting}
+\doublespace
+
+This tells Python to instantiate tools through the Abjad namespace. Doing this requires that all Abjad objects be prefixed with $abjad.$ followed by whatever object or tool is being used. Thus, a note object will look like this:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Format for object instantiation]
+>>> abjad.Note()
+\end{lstlisting}
+\doublespace
+
+This note can be given a variable name with which the user is able to refer to the note throughout the file and $abjad.show()$ can be used to quickly produce a $pdf$ file of this note:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Showing an $abjad.Note()$ object]
+>>> import abjad
+>>> note = abjad.Note()
+>>> abjad.show(note)
+\end{lstlisting}
+\doublespace
+
+This Abjad code will produce a Lilypond file containing the following text:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Showing an instance of an $abjad.Note()$ object: RESULT]
+\version "2.19.82"  %! LilyPondFile
+\language "english" %! LilyPondFile
+
+\header { %! LilyPondFile
+    tagline = ##f
+} %! LilyPondFile
+
+\layout {}
+
+\paper {}
+
+\score { %! LilyPondFile
+    {
+        c'4
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+and will produce the image in a pdf file seen in figure \ref{fig:default_note}:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.25\linewidth]{figures/fig1.png}
+  \caption{A default note.}
+  \label{fig:default_note}
+\end{figure}
+\doublespace
+
+Notice that the note object has various default values associated with it. The note is rendered with a pitch value of middle c and a duration value of one quarter note. Easily enough, these values are manipulable! Instead, the following could have been written:\footnote{http://abjad.mbrsi.org/appendices/pitch\_conventions.html}
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Altering default values in an instance $abjad.Note()$ object]
+>>> import abjad
+>>> note = abjad.Note(11, abjad.Duration(1, 8))
+>>> abjad.show(note)
+\end{lstlisting}
+\doublespace
+
+from which the image in figure \ref{fig:b_natural} and the following Lilypond code would be received:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Altering default values in an instance $abjad.Note()$ object: RESULT]
+\score { %! LilyPondFile
+    {
+        b'8
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.21\linewidth]{figures/fig2.png}
+  \caption{A note with the user-input duration value of (1, 8) and pitch value of 11.}
+  \label{fig:b_natural}
+\end{figure}
+\doublespace
+
+The following are a few strategies for making many notes in a row in order to create a piece. First, a staff and notes should be created. Then, the staff will be filled with notes and finally, the staff will be shown. Here is one way this can be done:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Populating a staff with notes]
+>>> import abjad
+>>> note_1 = abjad.Note(0, abjad.Duration(1, 4))
+>>> note_2 = abjad.Note(1, abjad.Duration(1, 4))
+>>> note_3 = abjad.Note(2, abjad.Duration(1, 2))
+>>> notes = [note_1, note_2, note_3]
+>>> staff = abjad.Staff(notes)
+>>> abjad.show(staff)
+\end{lstlisting}
+\doublespace
+
+from which the user would receive figure \ref{fig:staff_with_pitches} and the following Lilypond code:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Populating a staff with notes: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        c'4
+        cs'4
+        d'2
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.36\linewidth]{figures/fig3.png}
+  \caption{A staff with notes of varying pitch and duration.}
+  \label{fig:staff_with_pitches}
+\end{figure}
+\doublespace
+
+As one might begin to suspect, this process of note creation can get quite tedious. Here is one possible alternative approach to writing code with Abjad which is more economical for a longer piece:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Faster note creation]
+>>> import abjad
+>>> numerators = [1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, ]
+>>> denominators = [4, 4, 2, 8, 8, 4, 16, 16, 16, 16, 16, 16, ]
+>>> durations = [abjad.Duration(y, z) for y, z in zip(numerators, denominators)]
+>>> pitches = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+>>> notes = [abjad.Note(x, y) for x, y in zip(pitches, durations)]
+>>> note_staff = abjad.Staff(notes)
+>>> abjad.show(note_staff)
+\end{lstlisting}
+\doublespace
+
+Here, the use of $zip()$ can be seen as well as a list comprehension. With $zip()$ the programmer creates a list of numerators and denominators organized as tuples to represent fractions:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Tuple zip: RESULT]
+[(1, 4), (1, 4), (1, 2), (1, 8), (1, 8), (1, 4), (1, 16), (3, 16), (1, 16), (1, 16), (1, 16), (1, 16),]
+\end{lstlisting}
+\doublespace
+
+and with this list comprehension a list of duration objects based on those fractions is returned:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Duration list comprehension]
+>>> [abjad.Duration(y, z) for y, z in zip(numerators, denominators)]
+\end{lstlisting}
+\doublespace
+
+resulting in:	
+
+\singlespace
+\begin{lstlisting}[language=, caption=Duration list comprehension: RESULT]
+[abjad.Duration((1, 4)), abjad.Duration((1, 4)), abjad.Duration((1, 2)), abjad.Duration((1, 8)), abjad.Duration((1, 8)), abjad.Duration((1, 4)), abjad.Duration((1, 16)), abjad.Duration((3, 16)), abjad.Duration((1, 16)), abjad.Duration((1, 16)), abjad.Duration((1, 16)), abjad.Duration((1, 16)),]
+\end{lstlisting}
+\doublespace
+
+Again, two lists are zipped together, these being the list of pitches and the list of durations:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Pitch and duration zip: RESULT]
+[(0, abjad.Duration((1, 4))), (1, abjad.Duration((1, 4))), (2, abjad.Duration((1, 2))), (3, abjad.Duration((1, 8))), (4, abjad.Duration((1, 8))), (5, abjad.Duration((1, 4))), (6, abjad.Duration((1, 16))), (7, abjad.Duration((3, 16))), (8, abjad.Duration((1, 16))), (9, abjad.Duration((1, 16))), (10, abjad.Duration((1, 16))), (11, abjad.Duration((1, 16))),]
+\end{lstlisting}
+\doublespace
+
+and a note object is created for every pitch and duration in this list with a list comprehension:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Note object list comprehension: RESULT]
+[abjad.Note(0, abjad.Duration((1, 4))), abjad.Note(1, abjad.Duration((1, 4))), abjad.Note(2, abjad.Duration((1, 2))), abjad.Note(3, abjad.Duration((1, 8))), abjad.Note(4, abjad.Duration((1, 8))), abjad.Note(5, abjad.Duration((1, 4))), abjad.Note(6, abjad.Duration((1, 16))), abjad.Note(7, abjad.Duration((3, 16))), abjad.Note(8, abjad.Duration((1, 16))), abjad.Note(9, abjad.Duration((1, 16))), abjad.Note(10, abjad.Duration((1, 16))), abjad.Note(11, abjad.Duration((1, 16))),]
+\end{lstlisting}
+\doublespace
+
+this list of notes is placed inside of a staff and the staff is shown.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Showing the staff]
+>>> note_staff = abjad.Staff(notes)
+>>> abjad.show(note_staff)
+\end{lstlisting}
+\doublespace
+
+From this process, figure \ref{fig:staff_with_more_pitches} along with the following Lilypond output are produced:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Showing the staff: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        c'4
+        cs'4
+        d'2
+        ef'8
+        e'8
+        f'4
+        fs'16
+        g'8.
+        af'16
+        a'16
+        bf'16
+        b'16
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig13.png}
+  \caption{A staff with many notes.}
+  \label{fig:staff_with_more_pitches}
+\end{figure}
+\doublespace
+
+If this kind of process is extrapolated, one can begin to create loops\footnote{a ``loop,'' or ``for loop'' is the name of a kind of function structure.} to handle tasks of every shape and size. Because this process can be arduous at times, Abjad is equipped with a number of tools out of the box to assist in processes like note creation such as $abjad.LeafMaker()$, $abjad.NoteMaker()$, $abjad.MeasureMaker()$, and $abjad.SegmentMaker()$. While these features are useful and are at the heart of many other tools like the Abjad-ext package $rmakers$, it is important to realize that it is not necessary to rely on these built-in functions to be able to write music with Abjad. 
+
+\subsubsection{Dynamics, Articulations, and Hairpins}
+
+Just like the creation of note objects, one can also simplify and formalize the attachment of dynamics:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Attaching dynamics]
+>>> import abjad
+>>> dynamic_staff = abjad.Staff()
+>>> dynamic_staff.extend(r"c'4 cs'4 d'2")
+>>> piano = abjad.Dynamic('p')
+>>> mezzo_forte = abjad.Dynamic('mf')
+>>> forte = abjad.Dynamic('f')
+>>> abjad.attach(piano, dynamic_staff[0])
+>>> abjad.attach(mezzo_forte, dynamic_staff[1])
+>>> abjad.attach(forte, dynamic_staff[2])
+>>> abjad.show(dynamic_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in figure \ref{fig:dynamic_attachment_1} and the following Lilypond code:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Attaching dynamics: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        c'4
+        \p
+        cs'4
+        \mf
+        d'2
+        \f
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.36\linewidth]{figures/fig5.png}
+  \caption{Notes with dynamics.}
+  \label{fig:dynamic_attachment_1}
+\end{figure}
+\doublespace
+
+Simplifying this further by making use of a loop to attach the dynamics to each leaf\footnote{http://abjad.mbrsi.org/core\_concepts/lcsi.html} in the staff, dynamic objects can be created and attached at once:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Attaching more dynamics]
+>>> import abjad
+>>> new_staff = abjad.Staff()
+>>> new_staff.extend(r"c'4 cs'4 d'2 ef'8 e'8 f'4 fs'16 g'8. af'16 a'16 bf'16 b'16")
+>>> dynamics = ['niente', 'pppp', 'ppp', 'pp', 'p', 'mp', 'mf', 'f', 'ff', 'fff', 'ffff', 'sfz', ]
+>>> leaves = abjad.select(new_staff).leaves()
+>>> for leaf, dynamic in zip(leaves, dynamics):
+...     abjad.attach(abjad.Dynamic(dynamic), leaf)
+>>> abjad.show(new_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code and figure: \ref{fig:dynamic_attachment_1}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Attaching more dynamics: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        c'4
+        _ #(make-dynamic-script (markup #:whiteout #:normal-text #:italic "niente"))
+        cs'4
+        \pppp
+        d'2
+        \ppp
+        ef'8
+        \pp
+        e'8
+        \p
+        f'4
+        \mp
+        fs'16
+        \mf
+        g'8.
+        \f
+        af'16
+        \ff
+        a'16
+        \fff
+        bf'16
+        \ffff
+        b'16
+        \sfz
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig14.png}
+  \caption{More notes with dynamics.}
+  \label{fig:dynamic_attachment_1}
+\end{figure}
+\doublespace
+
+It can be seen that dynamics behave in the same way as other attachable objects. This is also true of articulations and hairpins. In the following example, articulations and hairpins are attached to leaves as well, featuring a possible way to imbue some behavioral qualities into the attachment of these elements.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Attaching dynamics through an algorithm]
+>>> import abjad
+>>> music_staff = abjad.Staff()
+>>> music_staff.extend(r"c'4 cs'4 d'2 r4 ds'2. e'8 f'8 fs'8 g'8 gs'8 r4. a'1")
+>>> for run in abjad.select(music_staff).runs():
+...     if len(run) > 3:
+...         leaves = abjad.select(run).leaves()
+...         abjad.attach(abjad.Dynamic('mf'), run[0])
+...         for leaf in leaves:
+...             abjad.attach(abjad.Articulation('tenuto'), leaf)
+...     elif len(run) == 3:
+...         abjad.attach(abjad.Dynamic('f'), run[0])
+...         abjad.attach(abjad.StartHairpin('>'), run[0])
+...         abjad.attach(abjad.Dynamic('mp'), run[-1])
+...     elif len(run) == 1:
+...         abjad.attach(abjad.Dynamic('ppp'), run[0])
+>>> abjad.show(music_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code and figure \ref{fig:dynamic_attachment_2}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Attaching dynamics through an algorithm: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        c'4
+        \f
+        \>
+        cs'4
+        d'2
+        \mp
+        r4
+        e'2
+        \mf
+        - \tenuto
+        f'8
+        - \tenuto
+        g'8
+        - \tenuto
+        a''8
+        - \tenuto
+        b''8
+        - \tenuto
+        c''8
+        - \tenuto
+        r4
+        c''2.
+        \ppp
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig6.png}
+  \caption{Notes with algorithmic dynamics.}
+  \label{fig:dynamic_attachment_2}
+\end{figure}
+\doublespace
+
+This loop analyzes the length of each run in the staff and chooses what dynamics and articulations to attach based on the result. This is an extremely powerful method for attaching indicators throughout a score. Next, I will introduce a procedure to handle the $abjad.BowContactPoint()$ object, which produces a more complex Lilypond result and graphic.\footnote{For clean and legible notation, users will want to edit the Lilypond context in which this notation occurs to remove clefs and staff lines. An example of this can be seen in the following section on $Stylesheets$. In order to avoid confusion, examples featuring the $abjad.BowContactPoint$ too are engraved with the default staff context.}
+
+\subsubsection{Using \textit{abjad.BowContactPoint()}}
+
+The $abjad.BowContactPoint()$ object and an accompanying factory function, $abjad.bow\_contact\_spanner()$, are tools that are able to annotate a staff of notes with fractions intended to represent points along the length of a bow.\footnote{It makes no difference what pitches are in the staff because the note heads are removed by the tool.} Native in these tools is the ability to calculate whether one fraction is greater or lesser than its surrounding fractions and attach an ``up-bow'' or ``down-bow'' marking as needed. Because of this feature, I created a file in Abjad 2.21 which I called $abjad.StringContactSpanner$ which eliminated the bow markings in order for it to be used universally for any potential parameter. This file was adapted by Trevor Ba\v{c}a into Abjad 3.1’s $abjad.BowContactPoint()$ which features an optional keyword to include or exclude these bowings. Here is a possible way to use these tools:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Bow tablature]
+>>> import abjad
+>>> bow_staff = abjad.Staff()
+>>> bow_staff.extend(r"c'4 c'4 c'4 c'4")
+>>> indicator_1 = abjad.BowContactPoint((3, 3))
+>>> indicator_2 = abjad.BowContactPoint((2, 3))
+>>> indicator_3 = abjad.BowContactPoint((1, 3))
+>>> indicator_4 = abjad.BowContactPoint((0, 3))
+>>> abjad.attach(indicator_1, bow_staff[0])
+>>> abjad.attach(indicator_2, bow_staff[1])
+>>> abjad.attach(indicator_3, bow_staff[2])
+>>> abjad.attach(indicator_4, bow_staff[3])
+>>> abjad.bow_contact_spanner(bow_staff, omit_bow_changes=True)
+>>> abjad.show(bow_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Bow tablature: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'4
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+and figure \ref{fig:bow_contact_1}:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.25\linewidth]{figures/fig4.png}
+  \caption{Bow tablature.}
+  \label{fig:bow_contact_1}
+\end{figure}
+\doublespace
+
+In the resultant Lilypond code are several, lengthy \textbackslash$tweak$ commands. Composing a score in Lilypond where an instrument has two staves, one of which is a bowing tablature that uses notation similar to what is produced by the $abjad.BowContactPoint()$ tool would be even more tedious to write than the note creation process above, making this tool quite useful for speeding up the engraving process. The following examples are a few alternative methods that achieve this kind of notation in a similar manner of reduction as in the note creation examples:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Extended bow tablature]
+>>> import abjad
+>>> new_bow_staff = abjad.Staff()
+>>> new_bow_staff.extend(r"c'4 c'4 c'2 c'8 c'8 c'4 c'16 c'8. c'16 c'16 c'16 c'16")
+>>> indicator_1 = abjad.BowContactPoint((3, 3))
+>>> indicator_2 = abjad.BowContactPoint((2, 3))
+>>> indicator_3 = abjad.BowContactPoint((1, 3))
+>>> indicator_4 = abjad.BowContactPoint((0, 3))
+>>> indicator_5 = abjad.BowContactPoint((2, 3))
+>>> indicator_6 = abjad.BowContactPoint((1, 3))
+>>> indicator_7 = abjad.BowContactPoint((3, 3))
+>>> indicator_8 = abjad.BowContactPoint((0, 3))
+>>> indicator_9 = abjad.BowContactPoint((1, 3))
+>>> indicator_10 = abjad.BowContactPoint((2, 3))
+>>> indicator_11 = abjad.BowContactPoint((3, 3))
+>>> indicator_12 = abjad.BowContactPoint((0, 3))
+>>> indicators = [indicator_1, indicator_2, indicator_3, indicator_4, indicator_5,
+... 			indicator_6, indicator_7, indicator_8, indicator_9, indicator_10,
+...			indicator_11, indicator_12, ]
+>>> leaves = abjad.select(new_bow_staff).leaves()
+>>> for leaf, indicator in zip(leaves, indicators):
+...     abjad.attach(indicator, leaf)
+>>> abjad.bow_contact_spanner(new_bow_staff, omit_bow_changes=True)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Extended bow tablature: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'2
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'16
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8.
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'16
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'16
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'16
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'16
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+and figure \ref{fig:bow_contact_2}:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig15.png}
+  \caption{Extended bow tablature.}
+  \label{fig:bow_contact_2}
+\end{figure}
+\doublespace
+
+This example is very similar to the previous example, except for the fact that the process of attaching indicators to leaves has been streamlined. Here is another possibility:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Very long bow tablature]
+>>> import abjad
+>>> new_bow_staff = abjad.Staff()
+>>> new_bow_staff.extend(r"c'4 c'4 c'4 c'4 c'4 c'4 c'4 c'4 c'4 c'4 c'4 c'4")
+>>> numerators = [3, 2, 1, 0, 1, 2, 3, 2, 1, 3, 0, 1, ]
+>>> indicators = [(abjad.BowContactPoint((numerator, 3))) for numerator in numerators]
+>>> leaves = abjad.select(new_bow_staff).leaves()
+>>> for leaf, indicator in zip(leaves, indicators):
+...     abjad.attach(indicator, leaf)
+>>> abjad.bow_contact_spanner(new_bow_staff, omit_bow_changes=True)
+>>> abjad.show(new_bow_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code and figure \ref{fig:bow_contact_3}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Very long bow tablature: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'4
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'4
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.65\linewidth]{figures/fig16.png}
+  \caption{Very long bow tablature.}
+  \label{fig:bow_contact_3}
+\end{figure}
+\doublespace
+
+Here is a further simplification. In this code, the fractions in the indicators are summarized in a list comprehension. If this process is simplified even further it is possible to write code like this:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Extremely long bow tablature]
+>>> import abjad
+>>> newer_bow_staff = abjad.Staff()
+>>> newer_bow_staff.extend(r"c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 ... 					c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8 c'8"
+...					)
+>>> leaves = abjad.select(newer_bow_staff).leaves()
+>>> indicator_numerators = [3, 2, 1, 2, 1, 0, 3, 2, 0, 3, 1, 0, 0, 3, 2, 3, 2, 1, 1, 0, 3, ... 					2, 1, 0,
+...					]
+>>> for leaf, numerator in zip(leaves, indicator_numerators):
+...     abjad.attach(abjad.BowContactPoint((numerator, 3)), leaf)
+>>> abjad.bow_contact_spanner(newer_bow_staff, omit_bow_changes=True)
+>>> abjad.show(newer_bow_staff)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code and figure \ref{fig:bow_contact_4}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Extremely long bow tablature: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        1
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        2
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-0.6666666666666666
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        1
+                        3
+            }
+        c'8
+        \glissando
+        \tweak Y-offset #-2.0
+        \tweak stencil #ly:text-interface::print
+        \tweak text \markup {
+            \center-align
+                \vcenter
+                    \fraction
+                        0
+                        1
+            }
+        c'8
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig17.png}
+  \caption{Extremely long bow tablature.}
+  \label{fig:bow_contact_4}
+\end{figure}
+\doublespace
+
+This version of the code is comprised of the least number of lines. Both the fractions and the attachment processes are summarized in a loop that takes the fractions, puts them in an indicator and attaches those indicators each to a leaf of the staff. Notice that each version of the code results in the same kind of output and each option simplifies the process. Extensive use of $abjad.BowContactPoint()$ can be found in the compositions $Armilla$\footnote{https://github.com/josiah-wolf-oberholtzer/armilla} by Josiah Wolf Oberholtzer and $Cthar$ by Gregory Rowland Evans.
+
+\subsubsection{Stylesheets}
+
+An important concept when working with Lilypond is the idea of a stylesheet. Typically, the beginning of each Lilypond file will be full of information telling Lilypond how to format and render the music within the file. To make use of Lilypond’s context concatenation ability, it is best to externalize this information into a file called a stylesheet. An \textbackslash$include$ statement is used to let Lilypond know where to find this information. The stylesheet is written in Lilypond syntax and occasionally Scheme code and may feature information about horizontal spacing proportional to the duration of notes, vertical spacing in staff groups, the removal of time signatures within staves, and the creation of a new context for displaying those time signatures above the staff group. This is also where information about font, font size, paper size and orientation, and header information is stored. The following is the stylesheet that I wrote for my cello duo Cthar:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Cthar stylesheet]
+% 2018-07-17 19:54
+
+\version "2.19.82"
+\language "english"
+#(set-default-paper-size "letterlandscape")
+#(set-global-staff-size 10)
+\include "ekmel.ily"
+\ekmelicStyle evans
+
+\header {
+	tagline = ##f
+	breakbefore = ##t
+	title = \markup \override #'(
+						font-name . "Didot"
+						) \fontsize #15 \bold \center-column {
+													"Cthar"
+													}
+	subtitle = \markup \override #'(
+							font-name . "Didot"
+							) \fontsize #4 \center-column {
+													"for two cellos"
+													}
+	arranger = \markup \override #'(
+							font-name . "Didot"
+							) \fontsize #2.5 {
+										"Gregory Rowland Evans"
+										}
+}
+
+bowtab = {
+   \override Staff.Clef.stencil = #ly:text-interface::print
+   \override Staff.Clef.text = \markup { \general-align #Y #0.03
+   \epsfile #Y #10 #"bow_position_tablature.eps"
+   }
+}
+
+\layout {
+    \accidentalStyle forget
+    indent = #5
+    ragged-right = ##t
+	\context {
+        \name TimeSignatureContext
+        \type Engraver_group
+        \numericTimeSignature
+        \consists Axis_group_engraver
+		\consists Bar_number_engraver
+        \consists Time_signature_engraver
+		\consists Mark_engraver
+		\consists Metronome_mark_engraver
+		\override BarNumber.Y-extent = #'(0 . 0)
+		\override BarNumber.Y-offset = 0
+		\override BarNumber.extra-offset = #'(-4 . 0)
+		%\override BarNumber.font-name = "Didot"
+		\override BarNumber.stencil = #(
+							make-stencil-boxer 0.1 0.7 ly:text-interface::print
+								)
+		\override BarNumber.font-size = 1
+		\override BarNumber.padding = 4
+		\override MetronomeMark.X-extent = #'(0 . 0)
+		\override MetronomeMark.Y-extent = #'(0 . 0)
+		\override MetronomeMark.break-align-symbols = #'(left-edge)
+		\override MetronomeMark.extra-offset = #'(0 . 4)
+		\override MetronomeMark.font-size = 10
+		\override RehearsalMark.stencil = #(
+						make-stencil-circler 0.1 0.7 ly:text-interface::print
+									)
+		\override RehearsalMark.X-extent = #'(0 . 0)
+		\override RehearsalMark.X-offset = 6
+		\override RehearsalMark.Y-offset = -2.25
+		\override RehearsalMark.break-align-symbols = #'(time-signature)
+		\override RehearsalMark.break-visibility = #end-of-line-invisible
+		\override RehearsalMark.font-name = "Didot"
+		\override RehearsalMark.font-size = 8
+		\override RehearsalMark.outside-staff-priority = 500
+		\override RehearsalMark.self-alignment-X = #center
+        \override TimeSignature.X-extent = #'(0 . 0)
+        \override TimeSignature.X-offset = #ly:self-alignment-interface::x-aligned-on-self
+        \override TimeSignature.Y-extent = #'(0 . 0)
+		\override TimeSignature.Y-offset = 3
+        \override TimeSignature.break-align-symbol = ##f
+        \override TimeSignature.break-visibility = #end-of-line-invisible
+        \override TimeSignature.font-size = #7
+        \override TimeSignature.self-alignment-X = #center
+        \override VerticalAxisGroup.default-staff-staff-spacing = #'(
+												(basic-distance . 0) 
+												(minimum-distance . 10) 
+												(padding . 6) 
+												(stretchability . 0)
+												)
+    }
+    \context {
+        \Score
+        \remove Bar_number_engraver
+		\remove Mark_engraver
+        \accepts TimeSignatureContext
+		\accepts LipStaff
+		\override BarLine.bar-extent = #'(-2 . 2)
+        \override Beam.breakable = ##t
+		\override Beam.concaveness = #10000
+		\override Glissando.breakable = ##t
+		\override MetronomeMark.font-size = 5
+        \override SpacingSpanner.strict-grace-spacing = ##t
+        \override SpacingSpanner.strict-note-spacing = ##t
+        \override SpacingSpanner.uniform-stretching = ##t
+        \override StaffGrouper.staff-staff-spacing = #'(
+										(basic-distance . 0) 
+										(minimum-distance . 6) 
+										(padding . 2)
+										)
+        \override TupletBracket.bracket-visibility = ##t
+        \override TupletBracket.minimum-length = #3
+        \override TupletBracket.padding = #2
+        \override TupletBracket.springs-and-rods = #ly:spanner::set-spacing-rods
+        \override TupletNumber.text = #tuplet-number::calc-fraction-text
+		\override TextSpanner.Y-offset = 1
+		proportionalNotationDuration = #(ly:make-moment 1 50)
+        autoBeaming = ##f
+        tupletFullLength = ##t
+    }
+	\context {
+        \Voice
+        \remove Forbid_line_break_engraver
+    }
+    \context {
+        \Staff
+        \remove Time_signature_engraver
+    }
+	\context {
+        \Staff
+        \name BowStaff
+        \type Engraver_group
+        \alias Staff
+        \bowtab
+        \override Beam.stencil = ##f
+        \override Dots.stencil = ##f
+        \override Flag.stencil = ##f
+        \override Glissando.bound-details.left.padding = #0.5
+        \override Glissando.bound-details.right.padding = #0.5
+        \override Glissando.thickness = #2
+        \override NoteHead.Y-offset = #-5
+        \override NoteHead.extra-offset = #'(0.05 . 0)
+		\override NoteHead.stencil = ##f
+		\override Rest.transparent = ##t
+        \override Script.staff-padding = #2
+        \override StaffSymbol.transparent = ##t
+        \override Stem.direction = #down
+        \override Stem.stencil = ##f
+        \override TimeSignature.stencil = ##f
+		\override Tie.stencil = ##f
+        \override TupletBracket.stencil = ##f
+        \override TupletNumber.stencil = ##f
+		%\RemoveEmptyStaves
+    }
+
+	\context {
+        \Staff
+        \name BeamStaff
+        \type Engraver_group
+        \alias Staff
+        \override Beam.direction = #down
+        \override Beam.positions = #'(5 . 5)
+        \override Clef.stencil = ##f
+        \override Dots.staff-position = #-2
+        \override Flag.Y-offset = #2.93
+        \override NoteHead.no-ledgers = ##t
+        \override NoteHead.stencil = ##f
+		\override Rest.transparent = ##t
+        \override Script.staff-padding = #3
+        \override StaffSymbol.transparent = ##t
+        \override Stem.direction = #down
+        \override Stem.length = #0.5
+        \override Stem.stem-begin-position = #15.975
+        \override TimeSignature.stencil = ##f
+		\override Tie.stencil = ##f
+        \override TupletBracket.positions = #'(3 . 3)
+    }
+
+    \context {
+        \RhythmicStaff
+        \remove Time_signature_engraver
+    }
+       \context {
+        \StaffGroup
+		\accepts BowStaff
+		\accepts BeamStaff
+    }
+}
+
+\paper {
+
+	top-margin = 1.5\cm
+	bottom-margin = 1.5\cm
+
+	%top-margin = .90\in
+	oddHeaderMarkup = \markup ""
+	evenHeaderMarkup = \markup ""
+	oddFooterMarkup = \markup \fill-line {
+    ""
+    \concat {
+      "Cthar   ~"
+	  \fontsize #2
+	  \fromproperty #'page:page-number-string "~   Evans"
+     }
+    ""
+  }
+  evenFooterMarkup = \markup \fill-line {
+    ""
+	\concat { "Cthar   ~" \fontsize #2
+	\fromproperty #'page:page-number-string "~   Evans"
+    } ""
+  }
+}
+\end{lstlisting}
+\doublespace
+
+In this score, I defined a few new contexts in order to manage the specific visual properties I desired for a staff indicating bow motion with the $abjad.BowContactPoint()$ tool. Aside from these properties, the composer is also able to edit graphic elements such as the width and spacing of beams, the thickness of stems, or the shape of flags. In this stylesheet, the clef symbol in the bowing staves is replaced with an $eps$ image of a bow to help indicate what the tablature represents.
+
+These are just a few examples of ways in which Abjad and Lilypond allow for the simplification of processes that, by hand, could be extremely tedious over the course of a lengthy composition. The principles involved in these examples extend to every facet of both composing and engraving. Now that the power that Python can give composers has been described, next I will show how creating these loops and functions can have further ramifications in the process of composing.
+
+\subsubsection{Composing with Models and Algorithms}
+
+Composing with Abjad and Python allows the composer to work with models and algorithms. The following is an example where pitches are generated by a random walk which can be seen as a one-dimensional model of Brownian motion.\footnote{Brownian motion is a model used to describe the rapid and random motion of particles in a fluid.} Much of my recent music features a similar procedure as the following:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Random walk]
+>>> import abjad
+>>> from random import seed
+>>> from random import random
+>>> seed(3)
+>>> random_walk = []
+>>> random_walk.append(-1 if random() < 0.5 else 1)
+>>> for i in range(1, 64):
+... 	movement = -1 if random() < 0.5 else 1
+... 	value = random_walk[i-1] + movement
+... 	random_walk.append(value)
+>>> notes = [abjad.Note(x / 2.0, (1, 8)) for x in random_walk]
+>>> staff = abjad.Staff(notes)
+>>> abjad.show(staff)
+\end{lstlisting}
+\doublespace
+
+In this code, the user must first create an empty list. Based on a string of randomly generated numbers, a new list of pitches is created, notated by numbers moving in a step of plus or minus 0.5 that are turned into note objects. They are next placed in a staff. It results in this Lilypond code and figure \ref{fig:random_walk}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Random walk: RESULT]
+\score { %! LilyPondFile
+    \new Staff
+    {
+        bqs8
+        c'8
+        bqs8
+        c'8
+        cqs'8
+        c'8
+        bqs8
+        c'8
+        bqs8
+        b8
+        bqs8
+        b8
+        bqs8
+        b8
+        bqs8
+        b8
+        bqs8
+        c'8
+        cqs'8
+        cs'8
+        dqf'8
+        cs'8
+        dqf'8
+        d'8
+        dqf'8
+        cs'8
+        dqf'8
+        cs'8
+        dqf'8
+        d'8
+        dqs'8
+        ef'8
+        dqs'8
+        ef'8
+        dqs'8
+        ef'8
+        eqf'8
+        ef'8
+        dqs'8
+        d'8
+        dqs'8
+        d'8
+        dqs'8
+        d'8
+        dqs'8
+        d'8
+        dqf'8
+        d'8
+        dqs'8
+        ef'8
+        eqf'8
+        e'8
+        eqs'8
+        f'8
+        fqs'8
+        f'8
+        fqs'8
+        fs'8
+        gqf'8
+        g'8
+        gqs'8
+        g'8
+        gqs'8
+        af'8
+    }
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.90\linewidth]{figures/fig7.png}
+  \caption{A mapping of a random walk.}
+  \label{fig:random_walk}
+\end{figure}
+\doublespace
+
+It is also possible to model more traditional compositional algorithms.\footnote{Admittedly, mensuration canons do not present an extremely complex algorithm, but it meets my definition of algorithm.} This code is more complex than what we have seen before.\footnote{This code is adapted from code written by Jeffrey Trevi\~{n}o and presented as a part of the 2018 Abjad summer workshop at CCRMA\footnote{Center for Computer Research in Music and Acoustics} at Stanford University.} This code creates a three-voice canon based on the melody input by the user. The melody is transposed and the rhythms are scaled to a different tempo. Voices with phrases that end before the slowest voice completes its phrase are repeated until the bottom voice has finished. Because of how the rhythms are scaled, it is important to use $abjad.mutate().rewrite\_meter()$ to ensure that all rhythms remain in the appropriate measure:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Mensuration canon]
+>>> import abjad
+>>> def generate_scaled_staff(scale_factor, staff):
+...     staff_pitches = []
+...     for logical_tie in abjad.iterate(staff).logical_ties():
+...         first_leaf = logical_tie[0]
+...         staff_pitches.append(first_leaf.written_pitch)
+...     staff_durations = [
+...	chain.written_duration*scale_factor for chain in abjad.iterate(staff).logical_ties()
+...	]
+...     scaled_staff = abjad.Staff()
+...     maker = abjad.NoteMaker()
+...     selections = maker(staff_pitches, staff_durations)
+...     scaled_staff.extend(selections)
+...     return scaled_staff
+
+>>> def partition_value(value):
+...     if x >= 16:
+...         divisions, remainder = divmod(value, 8)
+...         parts = [8] * divisions
+...         if remainder:
+...             parts.append(remainder)
+...     return parts
+
+>>> def process_maxima(durations):
+...     output_durations = []
+...     for duration in durations:
+...         if duration[0] >= 16:
+...             numerators = partition_value(duration[0])
+...             duration = [(numerator, 1) for numerator in numerators]
+...         output_durations.append(duration)
+
+>>> def scale_and_chop_staff(voice_number, staff, time_signature):
+...     scale_factor = 2 ** voice_number
+...     scaled_staff = generate_scaled_staff(scale_factor, staff)
+...     abjad.mutate(scaled_staff).transpose(voice_number * -7)
+...     abjad.mutate(scaled_staff[:]).split([time_signature], cyclic=True)
+...     return scaled_staff
+
+>>> def duplicate_music(num_copies, staff):
+...     out_staff = abjad.Staff()
+...     for x in range(num_copies):
+...         out_staff.extend(abjad.mutate(staff).copy())
+...     return out_staff
+
+>>> def make_scaled_staves(melody_staff, time_signature):
+...     scaled_staves = []
+...     for voice_number in range(3):
+...       scaled_staff = scale_and_chop_staff(voice_number, melody_staff, time_signature)
+...       scaled_staves.append(scaled_staff)
+...     return scaled_staves
+
+>>> def duplicate_score(scaled_staves):
+...     score = abjad.Score()
+...     for scaled_staff, duplicate_index in zip(scaled_staves, reversed(range(3))):
+...         scale_factor = 2**duplicate_index
+...         staff = duplicate_music(scale_factor, scaled_staff)
+...         score.append(staff)
+...     return score
+
+>>> def format_score(score, key_signature, time_signature):
+...     for staff in score:
+...         key_sig = abjad.KeySignature(key_signature.tonic, key_signature.mode)
+...         abjad.attach(key_sig, staff[0])
+...         time_sig = abjad.TimeSignature(time_signature)
+...         abjad.attach(time_sig, staff[0])
+...     abjad.attach(abjad.Clef('varC'), score[1][0])
+...     abjad.attach(abjad.Clef('bass'), score[2][0])
+
+>>> def make_canon(melody_staff, key_signature, time_signature):
+...     scaled_staves = make_scaled_staves(melody_staff, time_signature)
+...     score = duplicate_score(scaled_staves)
+...     format_score(score, key_signature, time_signature)
+...     return score
+
+>>> def rewrite_meter(score):
+...     meter = abjad.Meter()
+...     for staff in score:
+...         for shard in abjad.mutate(staff[:]).split([abjad.Duration(4, 4)], cyclic=True):
+...             abjad.mutate(shard).rewrite_meter(meter)
+
+>>> melody_staff = abjad.Staff("c'4 cs'8 d' ds' e' f'4 fs' g' gs'8 a' b' c''")
+>>> score = make_canon(
+...	melody_staff, abjad.KeySignature('c', 'major'), abjad.TimeSignature((4,4))
+...	)
+>>> rewrite_meter(score)
+>>> abjad.show(score)
+\end{lstlisting}
+\doublespace
+
+resulting in the Lilypond code and figure \ref{fig:canon}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Mensuration canon: RESULT]
+\score { %! LilyPondFile
+    \new Score
+    <<
+        \new Staff
+        {
+            \key c \major
+            \time 4/4
+            c'4
+            cs'8
+            d'8
+            ds'8
+            e'8
+            f'4
+            fs'4
+            g'4
+            gs'8
+            a'8
+            b'8
+            c''8
+            c'4
+            cs'8
+            d'8
+            ds'8
+            e'8
+            f'4
+            fs'4
+            g'4
+            gs'8
+            a'8
+            b'8
+            c''8
+            c'4
+            cs'8
+            d'8
+            ds'8
+            e'8
+            f'4
+            fs'4
+            g'4
+            gs'8
+            a'8
+            b'8
+            c''8
+            c'4
+            cs'8
+            d'8
+            ds'8
+            e'8
+            f'4
+            fs'4
+            g'4
+            gs'8
+            a'8
+            b'8
+            c''8
+        }
+        \new Staff
+        {
+            \key c \major
+            \time 4/4
+            \clef "varC"
+            f2
+            fs4
+            g4
+            gs4
+            a4
+            bf2
+            b2
+            c'2
+            cs'4
+            d'4
+            e'4
+            f'4
+            f2
+            fs4
+            g4
+            gs4
+            a4
+            bf2
+            b2
+            c'2
+            cs'4
+            d'4
+            e'4
+            f'4
+        }
+        \new Staff
+        {
+            \key c \major
+            \time 4/4
+            \clef "bass"
+            bf,1
+            b,2
+            c2
+            cs2
+            d2
+            ef1
+            e1
+            f1
+            fs2
+            g2
+            a2
+            bf2
+        }
+    >>
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.90\linewidth]{figures/fig8.png}
+  \caption{A mensuration canon.}
+  \label{fig:canon}
+\end{figure}
+\doublespace
+
+Using Abjad and Python, composers are able to write music full of intricate relationships with precise formal consistency, but a comfortable formalism in score control is not necessarily algorithmic utopia. Though these logical procedures are available and entirely possible, they are optional. The process of composing with Abjad should not be misperceived as a purely algorithmic system for music composition. Certainly, formalizing elements in a score allows for a great amount of consistency and control, but composers have every ability to make decisions and sculpt the music at will if they so desire.\footnote{Composing with the workflow of Python, Abjad, and Lilypond does present some difficulty in composing idiomatically for instruments. Piano music, in particular, presents a great challenge, a challenge that I have yet to surmount. If one is not careful, it is possible to compose music completely unplayable by a human performer.} Abjad and Lilypond do not dictate what kind of music is able to be composed. It is still the duty of the composer to constrain their musical practices to those they consciously wish to deploy.
+
+\subsection{The Need to Build Tools for a More Personalized Approach to Music-Making}
+
+\subsubsection{Building Tools}
+
+Why do I feel that it is important to write my own compositional tools? This is because each composer has a unique imagination and ideal. I feel greater satisfaction when I do not compose with the same methodology as another musician. I prefer a musical culture where each composer has a unique voice, because without it the beautiful diversity of new music would vanish. Abjad provides a framework for formalized score control but is not restrictive about the practices used to compose.\footnote{As I have previously written, even composing in notation programs such as Finale or Sibelius has restrictions and makes certain procedures difficult or impossible.} The fact that Abjad provides separate packages of tools for composition, as well as other functions, reveals that it is intended to be used by a variety of users with a variety of backgrounds. There are a handful of official extensions to Abjad under the title of abjad-ext.
+
+\subsubsection{abjad-ext}
+
+Abjad-ext consists of a number of packages that are not necessary for full functionality of the API. The packages include abjad-ext-tonality,\footnote{https://github.com/Abjad/abjad-ext-tonality} a tonal analysis extension, abjad-ext-book,\footnote{https://github.com/Abjad/abjad-ext-book} an extension for rendering Abjad code in \LaTeX, abjad-ext-ipython,\footnote{https://github.com/Abjad/abjad-ext-ipython} an extension for rendering Abjad code in IPython and Jupyter notebooks, abjad-ext-nauert,\footnote{https://github.com/Abjad/abjad-ext-nauert} an extension of quantization tools based on Paul Nauert’s Q-Grids, abjad-ext-cli,\footnote{https://github.com/Abjad/abjad-ext-cli} a Command Line Interface extension, and abjad-ext-rmakers,\footnote{https://github.com/Abjad/abjad-ext-rmakers} a rhythm maker tool extension. Each of these packages extend the functionality of Abjad, but I have only seriously used Trevor Ba\v{c}a’s rmakers package. These packages exist outside of the main Abjad source in order to emphasize their optionality.\footnote{The rmakers, previously called RhythmMakerTools, were once a part of the main Abjad source, but were externalized because their author felt they were more of a reflection of his own compositional practices than being a universal tool set.}
+
+\subsubsection{rmakers}\footnote{make a subsubsubsection}
+
+The rmakers consist of a set of tools for generating rhythmic material in certain characteristic ways. Contained in the rmakers package are a basic $RhythmMaker$ class, $AccelerandoRhythmMaker$, $EvenDivisionRhythmMaker$, $IncisedRhythmMaker$, $NoteRhythmMaker$, $TaleaRhythmMaker$, and $TupletRhythmMaker$. An extended description of these tools and their functionality can be found in Josiah Oberholtzer’s 2015 dissertation $A \: Computational \: Model \: of \: Music \: Composition$.\cite[pp. 118--128]{Oberholtzer} I am quite fond of these tools and, even though I intend to write my own rhythm-generating functions in the near future, they are the primary source of rhythmic composition in my recent music.
+
+\subsection{Other Packages}
+
+Along with the official abjad-ext packages are other packages by composers who make use of Abjad, including Consort,\footnote{https://github.com/josiah-wolf-oberholtzer/consort} a package written by Josiah Wolf Oberholtzer and described in detail in his dissertation, mtools\footnote{https://github.com/ivanalexandermoscotta/mtools} by Ivan Alexander Moscotta, and calliope\footnote{https://github.com/mirrorecho/calliope/tree/new-base} by Randall West. All of these packages present unique and innovative tools for music composition and have encouraged me to find my own way of composing with Abjad. As of the writing of this paper, I have only written one external tool set for composing, but they are used extensively in my scores, these are MusicMaker and the accompanying AttachmentHandler classes.
+
+\subsection{MusicMaker}
+
+MusicMaker is a python class of mine which is the result of my attempt to combine material consistency of many kinds. MusicMaker takes the input of an rmaker and an optional set of AttachmentHandler objects. This tool was written because, although the rmakers are capable of generating rhythmic material, they do not handle pitch in any way. One could compose the entire rhythmic framework of a piece and add pitches after the fact. I found myself using many different rmakers throughout the course of a piece and I found that I was working very hard to unify rhythmic gestures by giving them unique harmonic fields and dynamic trajectories. This process became quite difficult and required a trial-and-error process or a tedious amount of pre-compositional calculation by hand outside of the computer program. My solution was to create a tool that could handle many different rmakers, pitch fields, and attachment characteristics at once, leaving the composer to define distinct and alternating characters and processes with which to compose. When MusicMaker is given an rmaker and a list of pitches inside of the accompanying PitchHandler object, it automatically adds those pitches to the rhythms cyclically. When the list of pitches runs out, it repeats endlessly to ensure that there is always pitch material when the MusicMaker is called. Because MusicMaker generates music based on the rhythms and pitches that were input by the user each time that it is called within the python file, it allows the composer to instantiate multiple MusicMakers with unique rhythmic, harmonic, and dynamic qualities with other attachments. Much of my recent music is composed from alternating fragments of processes begun with MusicMaker. As I write more music, I find that there are more features that I wish to add to MusicMaker and the AttachmentHandler objects. As such, their code is still under revision. The following is the current source code for MusicMaker:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=MusicMaker source]
+import abjad
+from evans.AttachmentHandlers.GlissandoHandler import GlissandoHandler
+from evans.AttachmentHandlers.NoteheadHandler import NoteheadHandler
+from evans.AttachmentHandlers.PitchHandler import PitchHandler
+from evans.AttachmentHandlers.ArticulationHandler import ArticulationHandler
+from evans.AttachmentHandlers.DynamicHandler import DynamicHandler
+from evans.AttachmentHandlers.TextSpanHandler import TextSpanHandler
+from evans.AttachmentHandlers.ClefHandler import ClefHandler
+from evans.AttachmentHandlers.SlurHandler import SlurHandler
+from evans.AttachmentHandlers.TrillHandler import TrillHandler
+
+class MusicMaker:
+    def __init__(
+        self,
+        rmaker,
+        glissando_handler=None,
+        notehead_handler=None,
+        pitch_handler=None,
+        articulation_handler=None,
+        dynamic_handler=None,
+        text_span_handler=None,
+        clef_handler=None,
+        slur_handler=None,
+        trill_handler=None,
+        continuous=False,
+        state=None,
+    ):
+        self.glissando_handler = glissando_handler
+        self.notehead_handler = notehead_handler
+        self.pitch_handler = pitch_handler
+        self.articulation_handler = articulation_handler
+        self.dynamic_handler = dynamic_handler
+        self.text_span_handler = text_span_handler
+        self.clef_handler = clef_handler
+        self.slur_handler = slur_handler
+        self.trill_handler = trill_handler
+        self.continuous = continuous
+        self.rmaker = rmaker
+        self.state = self.rmaker.state
+        self._count = 0
+
+    def __call__(self, durations):
+        return self._make_music(durations)
+
+    def _make_basic_rhythm(self, durations):
+        if self.continuous == True:
+            state = self.state
+            selections = self.rmaker(durations, previous_state=self.rmaker.state)
+            self.state = self.rmaker.state
+        else:
+            selections = self.rmaker(durations, )
+        return selections
+
+    def _make_music(self, durations):
+        selections = self._make_basic_rhythm(durations)
+        if self.pitch_handler == None:
+            start_command = abjad.LilyPondLiteral(
+                r'\stopStaff \once \override Staff.StaffSymbol.line-count = #1 \startStaff',
+                format_slot='before',
+                )
+            stop_command = abjad.LilyPondLiteral(
+                r'\stopStaff \startStaff',
+                format_slot='after',
+                )
+            literal = abjad.LilyPondLiteral(r'\once \override Staff.Clef.transparent = ##t', 'before')
+            c_clef = abjad.LilyPondLiteral(r'\clef alto', 'before')
+            abjad.attach(literal, selections[0][0])
+            abjad.attach(c_clef, selections[0][0])
+            abjad.attach(start_command, selections[0][0])
+            abjad.attach(stop_command, selections[0][-1])
+        if self.pitch_handler != None:
+            selections = self.pitch_handler(selections)
+            if self.clef_handler != None:
+                selections = self.clef_handler(selections)
+        if self.glissando_handler != None:
+            selections = self.glissando_handler(selections)
+        if self.notehead_handler != None:
+            selections = self.notehead_handler(selections)
+        if self.articulation_handler != None:
+            selections = self.articulation_handler(selections)
+        if self.dynamic_handler != None:
+            selections = self.dynamic_handler(selections)
+        if self.text_span_handler != None:
+            selections = self.text_span_handler(selections)
+        if self.slur_handler != None:
+            selections = self.slur_handler(selections)
+        if self.trill_handler != None:
+            selections = self.trill_handler(selections)
+        return selections
+\end{lstlisting}
+\doublespace
+
+MusicMaker is made to be called with timespans\footnote{Timespans are also described in great detail in Josiah Oberholtzer's dissertation.\cite[pp. 78--118]{Oberholtzer}} and can be used as follows:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Using MusicMaker with PitchHandler]
+>>> import abjad
+>>> import itertools
+>>> import abjadext.rmakers
+>>> from evans.AttachmentHandlers.MusicMaker import MusicMaker
+>>> from evans.AttachmentHandlers.PitchHandler import PitchHandler
+
+>>> time_signatures = [
+...     abjad.TimeSignature(pair) for pair in [
+...         (4, 4), (5, 4),
+...     ]
+... ]
+
+>>> bounds = abjad.mathtools.cumulative_sums([_.duration for _ in time_signatures])
+
+>>> rmaker_one = abjadext.rmakers.TaleaRhythmMaker(
+...     talea=abjadext.rmakers.Talea(
+...         counts=[1, 2, 3, 4],
+...         denominator=16,
+...         ),
+...     beam_specifier=abjadext.rmakers.BeamSpecifier(
+...         beam_divisions_together=True,
+...         beam_rests=False,
+...         ),
+...     extra_counts_per_division=[0, 1,],
+...     tuplet_specifier=abjadext.rmakers.TupletSpecifier(
+...         trivialize=True,
+...         extract_trivial=True,
+...         rewrite_rest_filled=True,
+...		 rewrite_sustained=True,
+...         ),
+...     )
+
+>>> rmaker_two = abjadext.rmakers.EvenDivisionRhythmMaker(
+...     denominators=[8, 16,],
+...     extra_counts_per_division=[0,],
+...     tuplet_specifier=abjadext.rmakers.TupletSpecifier(
+...         trivialize=True,
+...         extract_trivial=True,
+...         rewrite_rest_filled=True,
+...         ),
+...     )
+
+>>> musicmaker_one = MusicMaker(
+...     rmaker=rmaker_one,
+...     pitches=[0, 1, 2, 3, 4],
+...     continuous=True,
+... )
+>>> musicmaker_two = MusicMaker(
+...     rmaker=rmaker_two,
+...     pitch_handler=PitchHandler(pitch_list=[4, 3, 2, 1, 0]),
+...     continuous=True,
+... )
+>>> silence_maker = abjadext.rmakers.NoteRhythmMaker(
+...     division_masks=[
+...         abjadext.rmakers.SilenceMask(
+...             pattern=abjad.index([0], 1),
+...             ),
+...         ],
+...     )
+
+>>> class MusicSpecifier:
+...     def __init__(self, music_maker, voice_name):
+...         self.music_maker = music_maker
+...         self.voice_name = voice_name
+
+>>> voice_1_timespan_list = abjad.TimespanList([
+...     abjad.AnnotatedTimespan(
+...         start_offset=start_offset,
+...         stop_offset=stop_offset,
+...         annotation=MusicSpecifier(
+...             music_maker=music_maker,
+...             voice_name='Voice 1',
+...         ),
+...     )
+>>>     for start_offset, stop_offset, music_maker in [
+...         [(0, 4), (2, 4), musicmaker_one],
+...         [(2, 4), (3, 4), musicmaker_one],
+...         [(3, 4), (4, 4), musicmaker_one],
+...         [(6, 4), (8, 4), musicmaker_two],
+...         [(8, 4), (9, 4), silence_maker],
+...     ]
+... ])
+
+>>> all_timespan_lists = {
+...     'Voice 1': voice_1_timespan_list,
+... }
+
+>>> global_timespan = abjad.Timespan(
+...     start_offset=0,
+...     stop_offset=max(_.stop_offset for _ in all_timespan_lists.values())
+... )
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     silences = abjad.TimespanList([global_timespan])
+...     silences.extend(timespan_list)
+...     silences.sort()
+...     silences.compute_logical_xor()
+...     for silence_timespan in silences:
+...         timespan_list.append(
+...             abjad.AnnotatedTimespan(
+...                 start_offset=silence_timespan.start_offset,
+...                 stop_offset=silence_timespan.stop_offset,
+...                 annotation=MusicSpecifier(
+...                     music_maker=None,
+...                     voice_name=voice_name,
+...                 ),
+...             )
+...         )
+...     timespan_list.sort()
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     shards = timespan_list.split_at_offsets(bounds)
+...     split_timespan_list = abjad.TimespanList()
+...     for shard in shards:
+...         split_timespan_list.extend(shard)
+...     split_timespan_list.sort()
+...     all_timespan_lists[voice_name] = timespan_list
+
+>>> score = abjad.Score([
+...     abjad.Staff(lilypond_type='TimeSignatureContext', name='Global Context'),
+...     abjad.Staff([abjad.Voice(name='Voice 1')],name='Staff 1', lilypond_type='Staff',),
+...     ],
+... )
+
+>>> for time_signature in time_signatures:
+...     skip = abjad.Skip(1, multiplier=(time_signature))
+...     abjad.attach(time_signature, skip)
+...     score['Global Context'].append(skip)
+
+>>> def make_container(music_maker, durations):
+...     selections = music_maker(durations)
+...     container = abjad.Container([])
+...     container.extend(selections)
+...     return container
+
+>>> def key_function(timespan):
+...     return timespan.annotation.music_maker or silence_maker
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     for music_maker, grouper in itertools.groupby(
+...         timespan_list,
+...         key=key_function,
+...     ):
+...         durations = [timespan.duration for timespan in grouper]
+...         container = make_container(music_maker, durations)
+...         voice = score[voice_name]
+...         voice.append(container)
+
+>>> for voice in abjad.iterate(score['Voice 1']).components(abjad.Voice):
+...     for i , shard in enumerate(abjad.mutate(voice[:]).split(time_signatures)):
+...         time_signature = time_signatures[i]
+...         abjad.mutate(shard).rewrite_meter(time_signature)
+
+>>> for voice in abjad.select(score).components(abjad.Voice):
+...     for run in abjad.select(voice).runs():
+...         specifier = abjadext.rmakers.BeamSpecifier(
+...             beam_each_division=False,
+...             )
+...         specifier(run)
+...     abjad.beam(voice[:], beam_lone_notes=False, beam_rests=False,)
+
+>>> abjad.show(score)
+\end{lstlisting}
+\doublespace
+
+With the assistance of a stylesheet for formatting, results in the following Lilypond code and figure \ref{fig:music_maker}:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Using MusicMaker with PitchHandler: RESULT]
+\score { %! LilyPondFile
+    \new Score
+    <<
+        \context TimeSignatureContext = "Global Context"
+        {
+            \time 4/4
+            s1 * 1
+            \time 5/4
+            s1 * 5/4
+        }
+        \context Staff = "Staff 1"
+        {
+            \context Voice = "Voice 1"
+            {
+                {
+                    c'16
+                    [
+                    cs'16
+                    ~
+                    cs'16
+                    d'16
+                    ~
+                    d'8
+                    ef'8
+                    ~
+                    \times 4/5 {
+                        ef'8
+                        e'16
+                        c'8
+                    }
+                    cs'8.
+                    d'16
+                    ]
+                }
+                {
+                    r2
+                }
+                {
+                    e'8
+                    [
+                    ef'8
+                    d'8
+                    cs'8
+                    ]
+                }
+                {
+                    r4
+                }
+            }
+        }
+    >>
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig11.png}
+  \caption{Notation from MusicMaker with two rmakers and PitchHandlers.}
+  \label{fig:music_maker}
+\end{figure}
+\doublespace
+
+\subsection{AttachmentHandlers}
+
+Along with MusicMaker, I have written a number of AttachmentHandler tools to control many other musical features. The current list of functioning tools consists of ArticulationHandler, ClefHandler, DynamicHandler, GlissandoHandler, NoteheadHandler, PitchHandler, SlurHandler, and TrillHandler. As the names imply, each of these tools contain processes for the application of various graphical elements within a score. They can be called alongside MusicMaker to create far more complex musical gestures and to handle a number of engraving issues that would typically be surmounted by hand outside of the python file. The source code for these tools is included in the appendix to this paper. With the exception of TrillHandler, each of the AttachmentHandler tools is able to be used both within MusicMaker and elsewhere in a file. TrillHandler can be used as follows:
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Using TrillHandler]
+>>> import abjad
+>>> from TrillHandler import TrillHandler
+>>> trill_handler = TrillHandler()
+>>> staff = abjad.Staff(
+... 		r'<a b>1 ~ <a b>4 \times 2/3 { a8 a8 <a b>8 } a4 a \times 2/3 { b8 a b }'
+... 		)
+>>> score = abjad.Score([staff])
+>>> trill_handler(score)
+>>> abjad.show(score)
+\end{lstlisting}
+\doublespace
+
+It results in the following:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Using TrillHandler: RESULT]
+\version "2.19.82"  %! LilyPondFile
+\language "english" %! LilyPondFile
+
+\header { %! LilyPondFile
+    tagline = ##f
+} %! LilyPondFile
+
+\layout {}
+
+\paper {}
+
+\score { %! LilyPondFile
+    \new Score
+    <<
+        \new Staff
+        {
+            \pitchedTrill
+            a1
+            ~
+            \startTrillSpan b
+            a4
+            \times 2/3 {
+                a8
+                \stopTrillSpan
+                a8
+                \pitchedTrill
+                a8
+                \startTrillSpan b
+            }
+            a4
+            \stopTrillSpan
+            a4
+            \times 2/3 {
+                b8
+                a8
+                b8
+            }
+        }
+    >>
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+and figure \ref{fig:trills}:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.50\linewidth]{figures/fig19.png}
+  \caption{Trills.}
+  \label{fig:trills}
+\end{figure}
+\doublespace
+
+The following example is a few bars for four voices exhibiting the functionality of each of the AttachmentHandlers.
+
+\singlespace
+\begin{lstlisting}[language=Python, caption=Demonstration of AttachmentHandlers]
+>>> import abjad
+>>> import itertools
+>>> import os
+>>> import pathlib
+>>> import time
+>>> import abjadext.rmakers
+>>> from MusicMaker import MusicMaker
+>>> from ArticulationHandler import ArticulationHandler
+>>> from ClefHandler import ClefHandler
+>>> from DynamicHandler import DynamicHandler
+>>> from GlissandoHandler import GlissandoHandler
+>>> from NoteheadHandler import NoteheadHandler
+>>> from PitchHandler import PitchHandler
+>>> from SlurHandler import SlurHandler
+>>> from TextSpanHandler import TextSpanHandler
+
+>>> print('Interpreting file ...')
+
+>>> time_signatures = [
+...     abjad.TimeSignature(pair) for pair in [
+...         (4, 4),
+...     ]
+... ]
+
+>>> bounds = abjad.mathtools.cumulative_sums([_.duration for _ in time_signatures])
+
+>>> rmaker = abjadext.rmakers.TaleaRhythmMaker(
+...     talea=abjadext.rmakers.Talea(
+...         counts=[2, 1, 5, 1, 3, 3, 1, 2, ],
+...         denominator=16,
+...         ),
+...     beam_specifier=abjadext.rmakers.BeamSpecifier(
+...         beam_divisions_together=True,
+...         beam_rests=False,
+...         ),
+...     extra_counts_per_division=[0, 0, 1, 0, -1],
+...     burnish_specifier=abjadext.rmakers.BurnishSpecifier(
+...         left_classes=[abjad.Note, abjad.Rest],
+...         left_counts=[1, 0, 1],
+...         ),
+...     tuplet_specifier=abjadext.rmakers.TupletSpecifier(
+...         trivialize=True,
+...         extract_trivial=True,
+...         rewrite_rest_filled=True,
+...         ),
+...     )
+
+>>> articulation_handler = ArticulationHandler(
+...     articulation_list=['tenuto', 'staccato', 'portato', ],
+...     continuous=True,
+...     )
+
+>>> clef_handler = ClefHandler(
+...     clef='bass',
+...     add_ottavas=True,
+...     # ottava_shelf=5,
+...     )
+
+>>> dynamic_handler = DynamicHandler(
+...     starting_dynamic='f',
+...     hairpin='>',
+...     ending_dynamic='p',
+...     continuous=True,
+...     )
+
+>>> glissando_handler = GlissandoHandler(
+...     line_style='dotted-line',
+...     )
+
+>>> notehead_handler = NoteheadHandler(
+...     notehead_list=['cross', 'harmonic-mixed',
+...                    'diamond', 'triangle', 'slash', 'default',  ],
+...     continuous=True,
+...     )
+
+>>> pitch_handler = PitchHandler(
+...     pitch_list=[0, 2, 1, [3, 10], 4, 8, [7, 9], 6],
+...     continuous=True,
+...     )
+
+>>> slur_handler = SlurHandler(
+...     slurs='runs',
+...     )
+
+>>> text_span_handler = TextSpanHandler(
+...     position_list_one=['0/7', '5/7', '7/7', ],
+...     position_list_two=['two', 'three', 'one', ],
+...     position_list_three=['three', 'one', 'two', ],
+...     start_style_one='solid-line-with-arrow',
+...     start_style_two='dashed-line-with-arrow',
+...     stop_style_one='solid-line-with-hook',
+...     stop_style_two='dashed-line-with-hook',
+...     stop_style_three='solid-line-with-hook',
+...     apply_list_one_to='edges',
+...     apply_list_two_to='ties',
+...     apply_list_three_to='left_only',
+...     continuous=True,
+...     )
+
+>>> music_maker = MusicMaker(
+...     rmaker=rmaker,
+...     articulation_handler=articulation_handler,
+...     clef_handler=clef_handler,
+...     dynamic_handler=dynamic_handler,
+...     glissando_handler=glissando_handler,
+...     notehead_handler=notehead_handler,
+...     pitch_handler=pitch_handler,
+...     slur_handler=slur_handler,
+...     # text_span_handler=text_span_handler,
+...     continuous=True,
+... )
+
+>>> silence_maker = abjadext.rmakers.NoteRhythmMaker(
+...     division_masks=[
+...         abjadext.rmakers.SilenceMask(
+...             pattern=abjad.index([0], 1),
+...             ),
+...         ],
+...     )
+
+>>> class MusicSpecifier:
+
+...     def __init__(self, rhythm_maker, voice_name):
+...         self.rhythm_maker = rhythm_maker
+...         self.voice_name = voice_name
+
+>>> print('Collecting timespans and rmakers ...')
+
+>>> voice_1_timespan_list = abjad.TimespanList([
+...     abjad.AnnotatedTimespan(
+...         start_offset=start_offset,
+...         stop_offset=stop_offset,
+...         annotation=MusicSpecifier(
+...             rhythm_maker=rhythm_maker,
+...             voice_name='Voice 1',
+...         ),
+...     )
+...     for start_offset, stop_offset, rhythm_maker in [
+...         [(0, 8), (4, 8), music_maker],
+...         [(5, 8), (7, 8), music_maker],
+...         [(7, 8), (8, 8), silence_maker],
+...     ]
+... ])
+
+>>> voice_2_timespan_list = abjad.TimespanList([
+...     abjad.AnnotatedTimespan(
+...         start_offset=start_offset,
+...         stop_offset=stop_offset,
+...         annotation=MusicSpecifier(
+...             rhythm_maker=rhythm_maker,
+...             voice_name='Voice 2',
+...         ),
+...     )
+...     for start_offset, stop_offset, rhythm_maker in [
+...         [(0, 8), (4, 8), music_maker],
+...         [(5, 8), (7, 8), music_maker],
+...         [(7, 8), (8, 8), silence_maker],
+...     ]
+... ])
+
+>>> voice_3_timespan_list = abjad.TimespanList([
+...     abjad.AnnotatedTimespan(
+...         start_offset=start_offset,
+...         stop_offset=stop_offset,
+...         annotation=MusicSpecifier(
+...             rhythm_maker=rhythm_maker,
+...             voice_name='Voice 3',
+...         ),
+...     )
+...     for start_offset, stop_offset, rhythm_maker in [
+...         [(0, 8), (4, 8), music_maker],
+...         [(5, 8), (7, 8), music_maker],
+...         [(7, 8), (8, 8), silence_maker],
+...     ]
+...])
+
+>>> voice_4_timespan_list = abjad.TimespanList([
+...     abjad.AnnotatedTimespan(
+...         start_offset=start_offset,
+...         stop_offset=stop_offset,
+...         annotation=MusicSpecifier(
+...             rhythm_maker=rhythm_maker,
+...             voice_name='Voice 4',
+...         ),
+...     )
+...     for start_offset, stop_offset, rhythm_maker in [
+...         [(0, 8), (4, 8), music_maker],
+...         [(5, 8), (7, 8), music_maker],
+...         [(7, 8), (8, 8), silence_maker],
+...     ]
+...])
+
+>>> all_timespan_lists = {
+...     'Voice 1': voice_1_timespan_list,
+...     'Voice 2': voice_2_timespan_list,
+...     'Voice 3': voice_3_timespan_list,
+...     'Voice 4': voice_4_timespan_list,
+... }
+
+>>> global_timespan = abjad.Timespan(
+...     start_offset=0,
+...     stop_offset=max(_.stop_offset for _ in all_timespan_lists.values())
+... )
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     silences = abjad.TimespanList([global_timespan])
+...     silences.extend(timespan_list)
+...     silences.sort()
+...     silences.compute_logical_xor()
+...     for silence_timespan in silences:
+...         timespan_list.append(
+...             abjad.AnnotatedTimespan(
+...                 start_offset=silence_timespan.start_offset,
+...                 stop_offset=silence_timespan.stop_offset,
+...                 annotation=MusicSpecifier(
+...                     rhythm_maker=None,
+...                     voice_name=voice_name,
+...                 ),
+...             )
+...         )
+...     timespan_list.sort()
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     shards = timespan_list.split_at_offsets(bounds)
+...     split_timespan_list = abjad.TimespanList()
+...     for shard in shards:
+...         split_timespan_list.extend(shard)
+...     split_timespan_list.sort()
+...     all_timespan_lists[voice_name] = timespan_list
+
+>>> score = abjad.Score([
+...     abjad.Staff(lilypond_type='TimeSignatureContext', name='Global Context'),
+...     abjad.StaffGroup(
+...         [
+abjad.Staff(
+[abjad.Voice(name='Voice 1')],name='Staff 1', lilypond_type='Staff',
+),
+abjad.Staff(
+[abjad.Voice(name='Voice 2')],name='Staff 2', lilypond_type='Staff',
+),
+abjad.Staff(
+[abjad.Voice(name='Voice 3')],name='Staff 3', lilypond_type='Staff',
+),
+abjad.Staff(
+[abjad.Voice(name='Voice 4')],name='Staff 4', lilypond_type='Staff',
+),
+...         ],
+...         name='Staff Group',
+...     )
+... ])
+
+
+>>> for time_signature in time_signatures:
+...     skip = abjad.Skip(1, multiplier=(time_signature))
+...     abjad.attach(time_signature, skip)
+...     score['Global Context'].append(skip)
+
+>>> print('Making containers ...')
+
+>>> def make_container(rhythm_maker, durations):
+...     selections = rhythm_maker(durations)
+...     container = abjad.Container([])
+...     container.extend(selections)
+...     return container
+
+>>> def key_function(timespan):
+... 	return timespan.annotation.rhythm_maker or silence_maker
+
+>>> for voice_name, timespan_list in all_timespan_lists.items():
+...     for rhythm_maker, grouper in itertools.groupby(
+...         timespan_list,
+...         key=key_function,
+...     ):
+...         durations = [timespan.duration for timespan in grouper]
+...         container = make_container(rhythm_maker, durations)
+...         voice = score[voice_name]
+...         voice.append(container)
+
+>>> print('Beaming runs ...')
+>>> for voice in abjad.select(score['Staff Group']).components(abjad.Voice):
+...     for run in abjad.select(voice).runs():
+...         specifier = abjadext.rmakers.BeamSpecifier(
+...             beam_each_division=False,
+...             )
+...         specifier(run)
+...     abjad.beam(voice[:], beam_lone_notes=False, beam_rests=False,)
+
+>>> print('Stopping Hairpins and Text Spans...')
+
+>>> for staff in abjad.iterate(score['Staff Group']).components(abjad.Staff):
+...     for run in abjad.select(staff).runs():
+...         last_leaf = run[-1]
+...         next_leaf = abjad.inspect(last_leaf).leaf(1)
+...         abjad.attach(abjad.StopHairpin(), next_leaf)
+
+>>> print('Adding attachments ...')
+>>> bar_line = abjad.BarLine('||')
+>>> metro = abjad.MetronomeMark((1, 4), 108)
+>>> markup = abjad.Markup(r'\bold { A }')
+>>> mark = abjad.RehearsalMark(markup=markup)
+
+>>> def cyc(lst):
+...     count = 0
+...     while True:
+...         yield lst[count%len(lst)]
+...         count += 1
+
+>>> instruments = cyc([
+...     abjad.Violin(),
+...     abjad.Violin(),
+...     abjad.Viola(),
+...     abjad.Cello(),
+...])
+
+>>> clefs = cyc([
+...     abjad.Clef('treble'),
+...     abjad.Clef('treble'),
+...     abjad.Clef('varC'),
+...     abjad.Clef('bass'),
+... ])
+
+>>> abbreviations = cyc([
+...     abjad.MarginMarkup(markup=abjad.Markup('vln. I'),),
+...     abjad.MarginMarkup(markup=abjad.Markup('vln. II'),),
+...     abjad.MarginMarkup(markup=abjad.Markup('vla.'),),
+...     abjad.MarginMarkup(markup=abjad.Markup('vc.'),),
+... ])
+
+>>> names = cyc([
+...     abjad.StartMarkup(markup=abjad.Markup('Violin I'),),
+...     abjad.StartMarkup(markup=abjad.Markup('Violin II'),),
+...     abjad.StartMarkup(markup=abjad.Markup('Viola'),),
+...     abjad.StartMarkup(markup=abjad.Markup('Violoncello'),),
+... ])
+
+>>> for staff in abjad.iterate(score['Staff Group']).components(abjad.Staff):
+...     leaf1 = abjad.select(staff).leaves()[0]
+...     abjad.attach(next(instruments), leaf1)
+...     abjad.attach(next(abbreviations), leaf1)
+...     abjad.attach(next(names), leaf1)
+
+>>> for staff in abjad.select(score['Staff Group']).components(abjad.Staff)[0]:
+...     leaf1 = abjad.select(staff).leaves()[0]
+...     last_leaf = abjad.select(staff).leaves()[-1]
+...     abjad.attach(metro, leaf1)
+...     abjad.attach(bar_line, last_leaf)
+
+>>> for staff in abjad.iterate(score['Global Context']).components(abjad.Staff):
+...     leaf1 = abjad.select(staff).leaves()[0]
+...     abjad.attach(mark, leaf1)
+
+>>> for staff in abjad.iterate(score['Staff Group']).components(abjad.Staff):
+...     abjad.Instrument.transpose_from_sounding_pitch(staff)
+
+>>> score_file = abjad.LilyPondFile.new(
+...     score,
+...     includes=['first_stylesheet.ily',
+...			  '/Users/evansdsg2/abjad/docs/source/_stylesheets/abjad.ily'
+...			],
+...     )
+
+>>> abjad.SegmentMaker.comment_measure_numbers(score)
+
+>>> abjad.show(score_file)
+\end{lstlisting}
+\doublespace
+
+It results in the following lilypond code:
+
+\singlespace
+\begin{lstlisting}[language=, caption=Demonstration of AttachmentHandlers: RESULT]
+\version "2.19.82"  %! LilyPondFile
+\language "english" %! LilyPondFile
+
+\include "first_stylesheet.ily"                                      %! LilyPondFile
+\include "/Users/evansdsg2/abjad/docs/source/_stylesheets/abjad.ily" %! LilyPondFile
+
+\header { %! LilyPondFile
+    tagline = ##f
+} %! LilyPondFile
+
+\layout {}
+
+\paper {}
+
+\score { %! LilyPondFile
+    \new Score
+    <<
+        \context TimeSignatureContext = "Global Context"
+        {
+            % [Global Context measure 1] %! COMMENT_MEASURE_NUMBERS
+            \time 4/4
+            \mark \markup {
+                \bold
+                    {
+                        A
+                    }
+                }
+            s1 * 1
+        }
+        \context StaffGroup = "Staff Group"
+        <<
+            \context Staff = "Staff 1"
+            \with
+            {
+                \consists Horizontal_bracket_engraver
+            }
+            {
+                \context Voice = "Voice 1"
+                {
+                    {
+                        % [Voice 1 measure 1] %! COMMENT_MEASURE_NUMBERS
+                        \set Staff.shortInstrumentName =
+                        \markup { "vln. I" }
+                        \set Staff.instrumentName =
+                        \markup { "Violin I" }
+                        \tempo 4=108
+                        \once \override Staff.NoteHead.style = #'cross
+                        \clef "bass"
+                        c'8
+                        \f
+                        - \tenuto
+                        \>
+                        - \tweak style #'dotted-line
+                        \glissando
+                        (
+                        [
+                        \once \override Staff.NoteHead.style = #'harmonic-mixed
+                        d'16
+                        - \staccato
+                        - \tweak style #'dotted-line
+                        \glissando
+                        ]
+                        \once \override Staff.NoteHead.style = #'diamond
+                        cs'4
+                        ~
+                        - \tweak style #'dotted-line
+                        \glissando
+                        \once \override Staff.NoteHead.style = #'diamond
+                        cs'16
+                        \p
+                        - \tweak stencil #constante-hairpin
+                        \<
+                        )
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                    {
+                        \once \override Staff.NoteHead.style = #'triangle
+                        \clef "bass"
+                        cs'16
+                        \f
+                        - \portato
+                        \>
+                        - \tweak style #'dotted-line
+                        \glissando
+                        (
+                        [
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'slash
+                        <ef' bf'>8.
+                        \p
+                        - \tenuto
+                        - \tweak stencil #constante-hairpin
+                        \<
+                        )
+                        ]
+                        \ottava 0
+                    }
+                    {
+                        r8
+                        \!
+                        \bar "||"
+                    }
+                }
+            }
+            \context Staff = "Staff 2"
+            \with
+            {
+                \consists Horizontal_bracket_engraver
+            }
+            {
+                \context Voice = "Voice 2"
+                {
+                    {
+                        \times 8/9 {
+                            % [Voice 2 measure 1] %! COMMENT_MEASURE_NUMBERS
+                            \set Staff.shortInstrumentName =
+                            \markup { "vln. II" }
+                            \set Staff.instrumentName =
+                            \markup { "Violin II" }
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'default
+                            \clef "bass"
+                            <ef' bf'>8.
+                            \f
+                            - \staccato
+                            \>
+                            - \tweak style #'dotted-line
+                            \glissando
+                            (
+                            [
+                            \ottava 0
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'cross
+                            e'16
+                            - \portato
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \ottava 0
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'harmonic-mixed
+                            af'8
+                            - \tenuto
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \ottava 0
+                            \ottava 1
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'diamond
+                            <g' a'>8
+                            - \staccato
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \ottava 0
+                            \ottava 0
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'triangle
+                            fs'16
+                            \p
+                            - \portato
+                            - \tweak stencil #constante-hairpin
+                            \<
+                            )
+                            ]
+                            \ottava 0
+                        }
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                    {
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'slash
+                        \clef "bass"
+                        fs'4
+                        \f
+                        - \tenuto
+                        - \tweak stencil #constante-hairpin
+                        \<
+                        )
+                        (
+                        \ottava 0
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                }
+            }
+            \context Staff = "Staff 3"
+            \with
+            {
+                \consists Horizontal_bracket_engraver
+            }
+            {
+                \context Voice = "Voice 3"
+                {
+                    {
+                        \tweak text #tuplet-number::calc-fraction-text
+                        \times 8/7 {
+                            % [Voice 3 measure 1] %! COMMENT_MEASURE_NUMBERS
+                            \set Staff.shortInstrumentName =
+                            \markup { vla. }
+                            \set Staff.instrumentName =
+                            \markup { Viola }
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'default
+                            \clef "bass"
+                            fs'16
+                            \f
+                            - \staccato
+                            \>
+                            - \tweak style #'dotted-line
+                            \glissando
+                            (
+                            [
+                            \ottava 0
+                            \once \override Staff.NoteHead.style = #'cross
+                            c'16
+                            - \portato
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \once \override Staff.NoteHead.style = #'harmonic-mixed
+                            d'8.
+                            - \tenuto
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \once \override Staff.NoteHead.style = #'diamond
+                            cs'8
+                            \p
+                            - \staccato
+                            - \tweak stencil #constante-hairpin
+                            \<
+                            )
+                            ]
+                        }
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                    {
+                        \once \override Staff.NoteHead.style = #'triangle
+                        \clef "bass"
+                        cs'16
+                        \f
+                        - \portato
+                        \>
+                        - \tweak style #'dotted-line
+                        \glissando
+                        (
+                        [
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'slash
+                        <ef' bf'>16
+                        - \tenuto
+                        - \tweak style #'dotted-line
+                        \glissando
+                        \ottava 0
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'default
+                        e'8
+                        \p
+                        - \staccato
+                        - \tweak stencil #constante-hairpin
+                        \<
+                        )
+                        ]
+                        \ottava 0
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                }
+            }
+            \context Staff = "Staff 4"
+            \with
+            {
+                \consists Horizontal_bracket_engraver
+            }
+            {
+                \context Voice = "Voice 4"
+                {
+                    {
+                        % [Voice 4 measure 1] %! COMMENT_MEASURE_NUMBERS
+                        \set Staff.shortInstrumentName =
+                        \markup { vc. }
+                        \set Staff.instrumentName =
+                        \markup { Violoncello }
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'cross
+                        \clef "bass"
+                        e'8
+                        \f
+                        - \portato
+                        \>
+                        - \tweak style #'dotted-line
+                        \glissando
+                        (
+                        [
+                        \ottava 0
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'harmonic-mixed
+                        af'16
+                        - \tenuto
+                        - \tweak style #'dotted-line
+                        \glissando
+                        ]
+                        \ottava 0
+                        \ottava 1
+                        \ottava 1
+                        \once \override Staff.NoteHead.style = #'diamond
+                        <g' a'>4
+                        ~
+                        - \tweak style #'dotted-line
+                        \glissando
+                        \once \override Staff.NoteHead.style = #'diamond
+                        <g' a'>16
+                        \p
+                        - \tweak stencil #constante-hairpin
+                        \<
+                        )
+                        \ottava 0
+                        \ottava 0
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                    {
+                        \times 4/5 {
+                            \ottava 1
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'triangle
+                            \clef "bass"
+                            <g' a'>16
+                            \f
+                            - \staccato
+                            \>
+                            - \tweak style #'dotted-line
+                            \glissando
+                            (
+                            [
+                            \ottava 0
+                            \ottava 0
+                            \ottava 1
+                            \once \override Staff.NoteHead.style = #'slash
+                            fs'8.
+                            - \portato
+                            - \tweak style #'dotted-line
+                            \glissando
+                            \ottava 0
+                            \once \override Staff.NoteHead.style = #'default
+                            c'16
+                            \p
+                            - \tenuto
+                            - \tweak stencil #constante-hairpin
+                            \<
+                            )
+                            ]
+                        }
+                    }
+                    {
+                        r8
+                        \!
+                    }
+                }
+            }
+        >>
+    >>
+} %! LilyPondFile
+\end{lstlisting}
+\doublespace
+
+and figure \ref{fig:quartet}:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig18.png}
+  \caption{Four voice demonstration of AttachmentHandlers.}
+  \label{fig:quartet}
+\end{figure}
+\doublespace
+
+\section{Editing Source Code}
+
+While I have written my own tools for composition with Abjad, I have also occasionally found it necessary to edit Abjad’s source code in order to include features that I desire, which is possible because Abjad is open source.
+
+\subsection{Clef.py}
+
+Recently I edited the $Clef.py$ file in the Abjad source. I did this in order to include Abjad representations of clefs that were present in the most recent update of Lilypond. The clefs in question were $varC$ and $tenorvarC$, both of which are alternative ``c'' clefs. I wanted to add these clefs for a logical reason as well as a personal reason. The first reason is that, as much as possible, Abjad should have a representation of all of Lilypond’s features. If a composer knows that Lilypond is capable of producing a certain graphic object,\footnote{These are often called grobs in Lilypond-lingo.} it can be very frustrating to find no way to use it in Abjad. The second reason is that these clefs more closely represent my own handwriting of c clefs than the traditional c clef.
+
+\subsection{Articulation.py}
+
+Just as with $Clef.py$ I also recently edited the $Articulation.py$ file. I did this at the same time and for the same reason as editing the clef file. I added Abjad representations of ``halfopen,'' which is a circle with a diagonal slash and ``snappizzicato,'' which is the common notation for a snap or ``Bartok'' pizzicato.
+
+\subsection{Microtonal Expansion in Abjad 2.21}
+
+In the summer of 2018, I undertook, with help from Ivan Moscotta, a much larger revision of Abjad’s source code. These edits were specifically centered around Abjad’s representation of pitch. At the time, the most recent version of Abjad was Abjad 2.21. Also during this summer, I attended the CCRMA Abjad workshop and I was able to discuss some of these changes with the primary maintainers of the system: Trevor Ba\v{c}a and Josiah Oberholtzer. We came to the conclusion that much of Abjad’s representation of microtones should be reassessed and should be open enough for composers to be able to define their own accidentals and scales. Because of this decision, the changes that I made to Abjad 2.21’s code are not available for users in the main branch of Abjad 3.1, but will hopefully be given new birth in a future release.\footnote{However, these changes are available in my greg/dev branch of Abjad.}
+
+\subsubsection{Process}
+
+I decided to undertake this major revision because I wanted to compose with microtones smaller than Lilypond’s and Abjad’s smallest interval, which is the quarter tone. In Lilypond’s font, Emmantaler, are two different kinds of quarter tones. Quarter tones written in Stein-Ellis notation and quarter tones written as traditional accidentals with an attached arrow either up or down to represent the microtonal alteration. I decided to use these arrow-based quarter tones to represent eighth tones.\footnote{This decision is informed, in part, by my familiarity with OpenMusic's accidentals.} In fact, there is a file buried deep within Lilypond called $Microtonal.ily$ that does just this. The file must be included at the header of the Lilypond file in order to make use of the user-defined microtones. I tried to find a way to do this and had a little success, although with great difficulty. I began to wonder if it was possible to extend this to further divisions of the octave. I began to edit the default font in Lilypond to be able to represent different kinds of accidentals as well as making some slight changes to the default accidentals for my own graphic preference, generally keeping to the Stein-Zimmerman notation for quarter tones\footnote{https://w3c.github.io/smufl/gitbook/tables/extended-stein-zimmermann-accidentals.html} and the Ferneyhough notation for all other microtonal alterations.\footnote{https://w3c.github.io/smufl/gitbook/tables/other-accidentals.html} This became cumbersome and inconsistent and I looked for an alternative. Fortuitously, I found the Ekmelily system.\footnote{http://www.ekmelic-music.org/en/extra/ekmelily.htm} This extension of Lilypond, written by Thomas Richter, does something similar to $Microtonal.ily$, but it also comes with an extensive font extension to allow for many kinds of microtonal representations and the ability to create user-defined scales with accidental grobs chosen by the user. This was my solution for graphically representing my new microtones. The following image in figure \ref{fig:scale} is a representation of my own user-defined scale:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig9.png}
+  \caption{ekmelicStyle evans scale.}
+  \label{fig:scale}
+\end{figure}
+\doublespace
+
+\subsubsection{File Systems and Alterations}
+
+There were a few files in Abjad that needed to be changed in order to interface with Ekmelily via Abjad. These files were $Accidental.py$, $NumberedPitchClass.py$, $PitchClass.py$, and $language\_pitch\_names.py$. I also edited the $language\_pitch\_names.ly$ file in Lilypond. In these files I defined the name, division size, and abbreviation of each new accidental and linked these abbreviations to my user-defined scale in Ekmelily. Making sure to always include Ekmelily and my own scale at the beginning of each Lilypond file, I was able to compose music in abjad with eighth tones, third tones, and sixth tones. All of the code alterations for this functionality is available at https://github.com/GregoryREvans/Abjad-Microtones.
+
+The following image in figure \ref{fig:eighth_random_walk} is a random walk generated with a pitch depth of eighth tones from my development branch of Abjad:
+
+\singlespace
+\begin{figure}[h]
+  \includegraphics[width=0.75\linewidth]{figures/fig10.png}
+  \caption{An eighth tone random walk.}
+  \label{fig:eighth_random_walk}
+\end{figure}
+\doublespace
+
+\section{Conclusion}
+
+In this chapter, I have described my methodology for composing in Abjad and the tools that I have written to assist in my compositional process. In the next chapter I will present the source code and scores of recent music that I have written with Abjad, all of which is available at https://github.com/GregoryREvans. Since the composition of these pieces, I have begun to experiment with a new organizational principle for my music. I now think of each piece as being similar to a piece of software which can make use of a number of data sets housed externally from the segment files of the composition. I now foresee a composition that is highly externalized. This will allow for greater fluidity when calling variables, functions, and lists throughout the composition process and will potentially contribute to a greater sense of continuity throughout a piece while simplifying and reducing the amount of code written. The first piece that I am beginning to compose in this manner can be found at https://github.com/GregoryREvans/onkos. Because the pieces included in this appendix were written before this paradigm shift, the source code has a tendency to be overly long and at times redundant.
+
+\singlespace
