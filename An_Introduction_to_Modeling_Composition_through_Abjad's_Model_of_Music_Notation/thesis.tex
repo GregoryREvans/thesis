@@ -6,10 +6,14 @@
 \begin{document}
 
 % the front matter
+\pagenumbering{gobble}
 \input{frontmatter/coverpage}
 \maketitle
 \copyrightpage
+\include{chapters/blank_page}
 \abstractpage
+\pagenumbering{roman}
+\setcounter{page}{3}
 \dedicationpage
 \acknowledgments
 \pagenumbering{roman}
@@ -32,6 +36,7 @@
 \include{chapters/chapter1}
 \include{chapters/back_cover_image}
 \include{chapters/chapter2}
+\include{chapters/blank_page}
 \include{chapters/chapter3}
 \include{chapters/scores}
 
